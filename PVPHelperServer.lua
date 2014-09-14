@@ -462,63 +462,10 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 				local objFirstSpell = allSpells[1];
 				local objFoe = objFirstSpell.Foe;
 				local nextCast = math.max(objFirstSpell.DRXpires, objFirstSpell.CDExpires);
---				objFoe.DRList:ListDRs();
 				local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
-				if maxActiveCC then
-					print("maxActiveCC = "..maxActiveCC);
-				else
-					print("No maxActiveCC");
-				end
 				print("Must tell "..objFirstSpell.FriendName.." to cast "..objFirstSpell.FriendSpellName.." in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
---				local notifiedFriends = FriendList.new();
---				for i,friendAndSpell in pairs(allSpells) do
---					print("Checking first available spell");
---					
---					
---					local strMessage = "";
---					local objFriend = friendAndSpell.Friend
---					local ccFriendSpell = friendAndSpell[2]
---		
---					if not (notifiedFriends:LookupGUID(objFriend.GUID)) then
---						notifiedFriends:Add(objFriend);
---					end
---					
---					
---					strMessage = strMessage .. tostring(friendAndSpell.CDExpires).."|";
---					--strMessage = strMessage .. tostring(friendAndSpell.DRXpires).."|";
---	
---					strMessage = strMessage .. FixedSizeString(friendAndSpell.FriendName, 20).."|";
---					
---					strMessage = strMessage .. FixedSizeString(friendAndSpell.FriendSpellName, 20).."|"
---	--				
---	--				Friend=objFoundFriend, 
---	--        	FreindSpell=objFriendSpell, 
---	--        	FriendName=objFoundFriend.Name, 
---	--        	FriendSpellName=objFriendSpell.CCName, 
---	--        	IsAvailable=objFriendSpell:IsAvailable(), 
---	--        	CDExpires=objFriendSpell:CooldownExpires(), 
---	--        	Duration=objFriendSpell.Duration,
---	--        	DRLevel=drLevel,
---	--        	DRExpires=drExpires
---	
---	----CRASHES- DONT Uncomment
---	----				if (friendAndSpell.IsAvailable) then
---	--				if (friendAndSpell.CCIsAvail == 1) then
---	--					strMessage = strMessage .. "Available".."|";
---	--				else
---	--					strMessage = strMessage .. "COOLDOWN".."|";
---	--				end
---	
---					--strMessage = strMessage .. friendAndSpell.CCIsAvail .."|";
---		
---					strMessage = strMessage .. tostring(friendAndSpell.Duration).."|";
---					--strMessage = strMessage .. tostring(friendAndSpell.DRLevel).."|";
---		
---					frame.MessageFrame:AddMessage(strMessage);
---					
---				end				
 			else
-					frame.MessageFrame:AddMessage("No CC Spells available");
+				frame.MessageFrame:AddMessage("No CC Spells available");
 			end
 		else
 	--		print("got no CCtarget1 foe");
