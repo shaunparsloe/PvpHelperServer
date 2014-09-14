@@ -19,7 +19,7 @@ Friend.lua
 FriendCCType.lua
 FriendCCTypeList.lua
 FriendList.lua
-Notifications.lua
+Notification.lua
 
 PVPH_Server.lua
 SlashCommands.lua

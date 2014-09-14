@@ -19,35 +19,30 @@ local CONSTANTS = {};
 
 
 function PvPHelperServer.new (options)
-  local self = setmetatable({}, PvPHelperServer)
+	local self = setmetatable({}, PvPHelperServer)
   
-  self.Message = Message.new();
+	self.Message = Message.new();
 	self.Message.Prefix = "PvPHelperClient";
 
-  self.FriendList = FriendList.new();
-  self.FoeList = FoeList.new();
-  self.GlobalCCTypesList = {}
-  self.GlobalCCDRList = {}
+	self.FriendList = FriendList.new();
+	self.FoeList = FoeList.new();
+	self.GlobalCCTypesList = {}
+	self.GlobalCCDRList = {}
 
+	local objDRTypesList = CCDRList.new()
+	GVAR.AllDRTypes = objDRTypesList.LoadAllDRSpells()
 
---	local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player"), CCTypes=objCCTypeList})
---self.FriendList:Add(objFriend)
---self.FriendList:LookupGUID(objFriend.GUID);
---
-  objDRTypesList = CCDRList.new()
-  GVAR.AllDRTypes = objDRTypesList.LoadAllDRSpells()
-
-  objList = nil;
-  objList = CCTypeList.new();
-  GVAR.AllCCTypes = objList:LoadAllCCTypes()  
+	local objList = nil;
+	objList = CCTypeList.new();
+	GVAR.AllCCTypes = objList:LoadAllCCTypes()  
   
-  self:Initialize();
+	self:Initialize();
 
-  PvPHelperServer_MainFrame = CreateUIElements(self);
+	self.NotificationServer = NotificationServer.new(self);
+	PvPHelperServer_MainFrame = CreateUIElements(self);
 
-  RegisterMainFrameEvents(self);
+	RegisterMainFrameEvents(self);
 
-  
   return self;
 end
 
