@@ -78,7 +78,7 @@ function FriendList:_BuildFriendCCTypesList()
 	          FriendGUID = friend.GUID,
 	          FriendName = friend.Name
 	        })
-	      self.FriendCCTypesList:Add(friendCCType);
+	      self.FriendCCTypesList:Add(deepcopy(friendCCType));
 	    end
 	else
 		print("No CC Types list for "..friend.Name);

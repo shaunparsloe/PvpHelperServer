@@ -19,15 +19,15 @@ end
 function Foe:CCAuraApplied(objCCSpell)
   local objDR = self.DRList:LookupDRType(objCCSpell.DRType);
   if objDR then
-    objDR:AddDR();
+    objDR:ApplyDR();
   else
     objDR = deepcopy(FoeDR.new(strDRType));
     objDR:ApplyDR(objCCSpell.Duration);
     self.DRList:Add(objDR);
     
-    local objCCDR = deepcopy(objCCSpell)
-    objCCDR:CastSpell();
-    self.CCTypeList:Add(objCCDR)
+    local objCC = deepcopy(objCCSpell)
+    objCC:CastSpell();
+    self.CCTypeList:Add(objCC)
     
   end
 
