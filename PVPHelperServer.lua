@@ -19,38 +19,41 @@ local CONSTANTS = {};
 
 
 function PvPHelperServer.new (options)
-	local self = setmetatable({}, PvPHelperServer)
+  local self = setmetatable({}, PvPHelperServer)
   
-	self.Message = Message.new();
+  self.Message = Message.new();
 	self.Message.Prefix = "PvPHelperClient";
 
-	self.FriendList = FriendList.new();
-	self.FoeList = FoeList.new();
-	self.GlobalCCTypesList = {}
-	self.GlobalCCDRList = {}
-	self.InCombat = false;
-	
-	objDRTypesList = CCDRList.new()
-	GVAR.AllDRTypes = objDRTypesList.LoadAllDRSpells()
-	
-	objList = nil;
-	objList = CCTypeList.new();
-	GVAR.AllCCTypes = objList:LoadAllCCTypes()  
-	  
-	self:Initialize();
-	
-	PvPHelperServer_MainFrame = CreateUIElements(self);
-	
-	RegisterMainFrameEvents(self);
-	
-	  
-	return self;
+  self.FriendList = FriendList.new();
+  self.FoeList = FoeList.new();
+  self.GlobalCCTypesList = {}
+  self.GlobalCCDRList = {}
+
+
+--	local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player"), CCTypes=objCCTypeList})
+--self.FriendList:Add(objFriend)
+--self.FriendList:LookupGUID(objFriend.GUID);
+--
+  objDRTypesList = CCDRList.new()
+  GVAR.AllDRTypes = objDRTypesList.LoadAllDRSpells()
+
+  objList = nil;
+  objList = CCTypeList.new();
+  GVAR.AllCCTypes = objList:LoadAllCCTypes()  
+  
+  self:Initialize();
+
+  PvPHelperServer_MainFrame = CreateUIElements(self);
+
+  RegisterMainFrameEvents(self);
+
+  
+  return self;
 end
 
 
 function PvPHelperServer:Initialize()
-  
-  --print("DEBUG: PvpHelperServer - Initializing");
+  print("DEBUG: PvpHelperServer - Initializing");
   self.MessageLog = {}
   self.MessageLog.Sent = {}
   self.MessageLog.Received= {}
@@ -62,9 +65,10 @@ function PvPHelperServer:Initialize()
     local objFoeList = FoeList.new()
     self:ResetFriendsAndFoes({FriendList = objFriendList, FoeList = objFoeList})
 
+
+
   self.UI = {};
   
-  self.Initialized = true;
 end
 
 
@@ -80,6 +84,7 @@ function PvPHelperServer:ResetFriendsAndFoes(options)
 		if (k.Name) then
 	  		print("PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
 	  		self:SendMessage("WhatSpellsDoYouHave", nil, k.Name);
+	  		--self:SendMessage("DummyTestMessage", nil, k.Name)
 	  	end
 	end
 	
@@ -90,26 +95,28 @@ end
 function PvPHelperServer:Apply_Aura(sourceGUID, sourceSpellId, destGUID)
   local objFoundFriend = self.FriendList:LookupGUID(sourceGUID);
   local objFriendSpell
-
   if objFoundFriend then
     objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
     if objFriendSpell then
-      print("PvPH_Server:Apply_Aura 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID..", ccName: "..objFriendSpell.CCName .." ccType)"..objFriendSpell.CCType)
+      print("PvPH_Server:Apply_Aura -CAST SPELL 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID..", ccName: "..objFriendSpell.CCName .." ccType)"..objFriendSpell.CCType)
       objFriendSpell:CastSpell();
-    else
--- 		Don't bother with aura's that are applied by a non-CC spell
---      print("PvPH_Server:Apply_Aura 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID)
---      print("PvPH_Server:Apply_Aura - Cannot find friend spell"..sourceSpellId)
-    end
-  else
-    -- This aura wasn't applied by one of my friends:
-  end
-  
-  local objFoundFoe = self.FoeList:LookupGUID(destGUID);
+
+
+    local objFoundFoe = self.FoeList:LookupGUID(destGUID);
 	-- In the foe when we apply the aura, it will start timers on both the ActiveCC and the DR Duration
   if objFoundFoe and objFriendSpell then
     objFoundFoe:CCAuraApplied(objFriendSpell)
   end
+
+    
+    else
+--      print("PvPH_Server:Apply_Aura 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID)
+      print("PvPH_Server:Apply_Aura - Cannot find friend spell"..sourceSpellId)
+    end
+  else
+    -- This aura wasn't applied by one of my friends:
+  end
+
 
 end  
 
@@ -118,7 +125,9 @@ function PvPHelperServer:Remove_Aura(destGUID, spellId)
   local objFoundFoe = self.FoeList:LookupGUID(destGUID);
 
   if objFoundFoe then
+    --local drtype = self.GlobalCCDRList:LookupCCName(strSpellName);
     local cctype = GVAR.AllCCTypes:LookupSpellId(spellId)
+    -- And apply to foe
     if cctype then
       objFoundFoe:CCAuraRemoved(cctype)
     end
@@ -127,26 +136,50 @@ end
 
 
 
--- This is an important function.  It will compile a list of all our CC spells and 
--- rank them based on which is on priority and cooldown and DR remaining.
+--
+--function PvPHelperServer:TargetFoeDRExpiry(CCTarget1GUID)
+--	  	local objFoundFoe = self.FoeList:LookupGUID(CCTarget1GUID);
+--	  	local drExpiry = 0;
+--		print ("Checking DRList");
+--			for i, dr in pairs(objFoundFoe.DRList) do
+--				if dr.DRType then
+--					local thisDRExpiry = dr.DRExpiry;
+--					drExpiry = math.max(drExpiry, thisDRExpiry)
+--				print("MyFoe DR = "..dr.DRType.." - Dr expires in " .. drExpiry);
+--				else
+--				print("Blank dr");
+--				end
+--			end
+--
+--	  	return drExpiry;
+--end
+
 function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
   local OrderedCCSpells = {};
 
+	
 	if (CCTarget1GUID) then
 		--print("DEBUG: looking for FOE GUID "..CCTarget1GUID)
 	  	local objFoundFoe = self.FoeList:LookupGUID(CCTarget1GUID);
+	  	--objFoundFoe.DRList:ListDRs();
 		if objFoundFoe then
-		
-			--print("DEBUG: Found FOE GUID "..CCTarget1GUID)
-  			local allFriendCCTypes = self.FriendList.FriendCCTypesList;
+		--print("DEBUG: Found FOE GUID "..CCTarget1GUID)
+  			local allFriendSpells = self.FriendList.FriendCCTypesList;
 
-		    for i, ccFriendSpell in ipairs(allFriendCCTypes) do
+		  	
+		    for i, ccFriendSpell in ipairs(allFriendSpells) do
 		    
 		      --print("FriendSpell "..i.."). "..ccFriendSpell.SpellId)
 		      local objFoundFriend = self.FriendList:LookupGUID(ccFriendSpell.FriendGUID);
 		      if objFoundFriend then
-			
 				local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(ccFriendSpell.SpellId);
+				
+				local isAvail;
+				if (objFriendSpell:IsAvailable()) then
+					isAvail = "Available";
+				else
+					isAvail = "COOLDOWN";
+				end
 		
 				
 				local cdExpires = objFriendSpell:CooldownExpires();
@@ -156,9 +189,22 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 				local drExpires  = 0;
 				if (objDR) then 
 					objDR:Recalculate();
+					-- objDR.DRExpires
+					--drExpires = tonumber(objDR.DRExpires);
 					drExpires = objDR.DRExpires -- relative_valueof(objDR.DRExpires);
+					--print("DRType = "..objDR.DRType..", expires = "..xpires.. ", drLevel = "..objDR.DRLevel);
+--					
 --					print("DRType = "..objDR.DRType.."drLevel = "..objDR.DRLevel.." cooldown="..objDR.DRExpires)
+
+
 					drLevel = objDR.DRLevel;
+					
+--					  local retval = deepcopy(objDR)
+--					  retval:Expires()
+--					print("DEBUG:shallow_copy returns "..retval:Expires());
+
+-- Crashes uncomment
+--					drExpires = objDR:Expires()
 				
 				else
 					drExpires = 0;
@@ -177,10 +223,11 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 		        	FreindSpell=objFriendSpell, 
 		        	FriendName=objFoundFriend.Name, 
 		        	FriendSpellName=objFriendSpell.CCName, 
+		        	CCIsAvail=isAvail,
 			    	CDExpires=cdExpires,
 		        	Duration=objFriendSpell.Duration,
 		        	DRLevel=drLevel,
-		        	DRExpires=drExpires,
+		        	DRXpires=drExpires,
 		        	Weighting=objFriendSpell.Weighting
 		        	});
 			
@@ -191,8 +238,20 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 		      	print("Cannot find friend with GUID " ..FriendGUID.. " in FriendList");
 		      end
 		    end
+		
+
+		  	
+		  	
+		  	
+		  	--	table.insert(OrderedCCSpells, "FOUND A SPELL");
 		else
 	    	print("Cannot find foe with GUID " .. CCTarget1GUID .. " in FOELIST")
+--	    objFoundFoe = Foe.new({GUID=CCTarget1GUID, Name="[unknown]", Class="[unknown]"})
+--	    self.FoeList:Add(objFoundFoe);
+--	
+    --for i,v in ipairs(self.FoeList) do
+      --print(i..") "..v.GUID)
+    --end
   		end
   	else 
 		print("No Guid Passed To calculate OrderedCCSpells");
@@ -200,12 +259,12 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 
 
 
-	-- Sort by Cooldown,DRExpiry and spell weighting    
+    
 	table.sort(OrderedCCSpells, 
         function(x,y)
         	local retval = false;
         	if (x.CDExpires <= y.CDExpires) then
-        		if (x.DRExpires <= y.DRExpires) then
+        		if (x.DRXpires <= y.DRXpires) then
         			if (x.Weighting <= y.Weighting) then
         				retval = true;
         			end
@@ -226,14 +285,16 @@ function PvPHelperServer:MessageReceived(strPrefix, strMessage, strType, strSend
   print("DEBUG: PvpHelperServer - Message Received "..strMessage);
 --  print("DEBUG: PvpHelperServer - Message Received "..self.Message.Header..strSender);
   
+  -- TODO: REmove this comment - it could be that we're pinging back message received comments every time!!!
+  -- We have commented this out to try to fix a bug with 2x CCTypes messages causing errors.
   self.Message:Format(strPrefix, strMessage, strType, strSender)
   
 	if (self.Message.Header)=="MySpells" then -- 0020 = MySpells  
 		self:SetFriendSpells(self.Message.Body, self.Message.From)
   elseif (self.Message.Header)=="SpellCoolDown" then -- 0080 = ThisSpellIsOnCooldown
     self:SetFriendSpellOnCooldown(self.Message.Body, self.Message.From)
-  elseif (self.Message.Header)=="ThisSpellIsOffCooldown" then -- 0090 = ThisSpellIsOffCooldown
-    self:SetFriendSpellOffCooldown(self.Message.Body, self.Message.From)
+--  elseif (self.Message.Header)=="ThisSpellIsOffCooldown" then -- 0090 = ThisSpellIsOffCooldown
+--    self:SetFriendSpellOffCooldown(self.Message.Body, self.Message.From)
 	end
 end
 
@@ -254,13 +315,13 @@ function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
 end
 
 function PvPHelperServer:SetFriendSpellOnCooldown(PaddedstrSpellId, strFrom)
- print(" PvPHelperServer:SetFriendSpellOnCooldown "..PaddedstrSpellId..", "..strFrom..")")
+	-- print(" PvPHelperServer:SetFriendSpellOnCooldown "..PaddedstrSpellId..", "..strFrom..")")
 	strSpellId = strsub(PaddedstrSpellId, 7);
     local objFoundFriend = self.FriendList:LookupName(strFrom);
     if objFoundFriend then
       local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(strSpellId);
       if objFriendSpell then
-        print("putting spell "..tostring(objFriendSpell.SpellId).." on cooldown")--
+        --print("putting spell "..tostring(objFriendSpell.SpellId).." on cooldown")--
         objFriendSpell:CastSpell()  -- Mark this as cast to set timeout and cooldown
       else
         print("SetFriendSpellOnCooldown cannot find friendspell : "..strSpellId)
@@ -268,28 +329,23 @@ function PvPHelperServer:SetFriendSpellOnCooldown(PaddedstrSpellId, strFrom)
     else
       print("SetFriendSpellOnCooldown cannot find friend : "..strFrom)
     end
-    
-    
 end
 
 function PvPHelperServer:SetFriendSpellOffCooldown(strSpellId, strFrom)
-	--print("DEBUG: PvPHelperServer:SetFriendSpellOFFCooldown("..strSpellId..", "..strFrom..")")
-	local objFoundFriend = self.FriendList:LookupName(strFrom);
-    if objFoundFriend then
-    	local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(strSpellId);
-      	if objFriendSpell then
-      		--print("DEBUG: putting spell "..tostring(objFriendSpell.SpellId).." OFF cooldown")--
-        	objFriendSpell:Reset()  -- Mark this as cast to set timeout and cooldown
-      	else
-        	--print("DEBUG: SetFriendSpellOnCooldown cannot find friendspell : "..strSpellId)
-      	end
-    else
-      	--print("DEBUG: SetFriendSpellOnCooldown cannot find friend : "..strFrom)
-    end
+	print(" PvPHelperServer:SetFriendSpellOFFCooldown("..strSpellId..", "..strFrom")")
+--	    local objFoundFriend = self.FriendList:LookupName(strFrom);
+--    if objFoundFriend then
+--      local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(strSpellId);
+--      if objFriendSpell then
+--      	print("putting spell "..tostring(objFriendSpell.SpellId).." OFF cooldown")--
+--        --objFriendSpell:Reset()  -- Mark this as cast to set timeout and cooldown
+--      else
+--        print("SetFriendSpellOnCooldown cannot find friendspell : "..strSpellId)
+--      end
+--    else
+--      print("SetFriendSpellOnCooldown cannot find friend : "..strFrom)
+--    end
 end
-
-
-
 -- OnEvent
 function PVPHelperServer_OnEvent(self, event, ...)
 		local timestamp, Event, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, param15,
@@ -348,40 +404,40 @@ print("DEBUG: Raid roster update");
 			return
 		end
 
-    	local objFriendList = FriendList.new()
+    local objFriendList = FriendList.new()
     
 		for i=1,GetNumPartyMembers() do
 			unittowatch = "party"..i;
-	      	local _,isdead,online,name,class,guid;
-	      	isdead = UnitIsDeadOrGhost(unittowatch);
-	      	name = UnitName(unittowatch);
-	      	online = UnitIsConnected(unittowatch);
-	      	_,class = UnitClass(unittowatch);
-	      	guid = UnitGUID(unittowatch);
+      local _,isdead,online,name,class,guid;
+      isdead = UnitIsDeadOrGhost(unittowatch);
+      name = UnitName(unittowatch);
+      online = UnitIsConnected(unittowatch);
+      _,class = UnitClass(unittowatch);
+      guid = UnitGUID(unittowatch);
       
-	      local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
-	              print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " + name + " to friendlist");
-	
-	      objFriendList:Add(objFriend)
+      local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
+              print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " + name + " to friendlist");
+
+      objFriendList:Add(objFriend)
 		end
   
-	    objPvPServer.FriendList = nil;
-	    objPvPServer.FriendList = objFriendList
-	
-	elseif event == "PLAYER_REGEN_DISABLED" then
-		objPvPServer.InCombat = true;
-		
-	elseif event == "PLAYER_REGEN_ENABLED" then
-		objPvPServer.InCombat = false;
-
+    objPvPServer.FriendList = nil;
+    objPvPServer.FriendList = objFriendList
 
 
 
   elseif event == "PLAYER_ENTERING_WORLD" then
+
+--    local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
+--    local objFriendList = FriendList.new()
+--    objFriendList:Add(objFriend)
+--    print("Clearing FoeList");
+--    local objFoeList = FoeList.new()
+--    objPvPServer:ResetFriendsAndFoes({FriendList = objFriendList, FoeList = objFoeList})
 	 objPvPServer:Initialize();
   
   elseif event == "ZONE_CHANGED_NEW_AREA" then
---    print("Event ZONE_CHANGED_NEW_AREA fired")
+    print("Event ZONE_CHANGED_NEW_AREA fired")
     objPvPServer:Initialize();
   elseif event == "CHAT_MSG_ADDON" then
 --	print("PvPHelperServer-MESSAGE RECEIVED with stamp "..timestamp.." - "..tostring(Event))
@@ -396,30 +452,32 @@ print("DEBUG: Raid roster update");
 		if Event=="SPELL_AURA_REMOVED" then
         	 objPvPServer:Remove_Aura(destGUID, spellId)   
     	elseif Event=="SPELL_AURA_APPLIED" or Event=="SPELL_AURA_REFRESH" then
-    		objPvPServer:Apply_Aura(sourceGUID, spellId, destGUID)
-		end
-	end
+        	objPvPServer:Apply_Aura(sourceGUID, spellId, destGUID)
+    	end
+  end
+end
+
+function UpdateFriendList()
+  local objFriend = {}
+  local objFriendList = FriendList.new()
+  
 end
 
 
-
 function RegisterMainFrameEvents(self)
-
-	PvPHelperServer_MainFrame.TimeSinceLastUpdate = 0;
-
-	PvPHelperServer_MainFrame:SetScript("OnUpdate", PVPHelperServer_OnUpdate)
-	PvPHelperServer_MainFrame:SetScript("OnEvent", PVPHelperServer_OnEvent)
 	
+  PvPHelperServer_MainFrame.TimeSinceLastUpdate = 0;
+	PvPHelperServer_MainFrame:SetScript("OnUpdate", PVPHelperServer_OnUpdate)
+
 	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
-	PvPHelperServer_MainFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA");
-	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_LOGIN");
-	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
-	PvPHelperServer_MainFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
-	PvPHelperServer_MainFrame:RegisterEvent("CHAT_MSG_ADDON");
-	PvPHelperServer_MainFrame:RegisterEvent("RAID_ROSTER_UPDATE");
-	PvPHelperServer_MainFrame:RegisterEvent("PARTY_MEMBERS_CHANGED");
-	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_REGEN_DISABLED");
-	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
+  PvPHelperServer_MainFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+  --PvPHelperServer_MainFrame:RegisterEvent("PLAYER_LOGIN")
+  PvPHelperServer_MainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+  PvPHelperServer_MainFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+  PvPHelperServer_MainFrame:RegisterEvent("CHAT_MSG_ADDON")
+  PvPHelperServer_MainFrame:RegisterEvent("RAID_ROSTER_UPDATE")
+  PvPHelperServer_MainFrame:RegisterEvent("PARTY_MEMBERS_CHANGED")
+  PvPHelperServer_MainFrame:SetScript("OnEvent", PVPHelperServer_OnEvent)
 
 end
 
@@ -449,15 +507,67 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 		if (btnCCTarget1.Foe) then
 			local allSpells = objPvPServer:OrderedCCSpells(btnCCTarget1.Foe.GUID);
 			frame.MessageFrame:Clear();
-			frame.MessageFrame:AddMessage("CDExpires, DRExpires, SPELL NAME, IsCD, Duration, DRLevel");
+			frame.MessageFrame:AddMessage("CDExpires, DRExpires, SPELL NAME, IsCD, IsAvail, Duration, DRLevel");
 			if (allSpells) then
 				local objFirstSpell = allSpells[1];
 				local objFoe = objFirstSpell.Foe;
-				local nextCast = math.max(objFirstSpell.DRExpires, objFirstSpell.CDExpires);
+				local nextCast = math.max(objFirstSpell.DRXpires, objFirstSpell.CDExpires);
+--				objFoe.DRList:ListDRs();
 				local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
-
-				print("Must tell "..objFirstSpell.FriendName.." to cast "..objFirstSpell.FriendSpellName.." in " ..tostring(nextCast+maxActiveCC).."sec");
-
+				local drExpiry = 0;
+				if maxActiveCC then
+					print("maxActiveCC = "..maxActiveCC);
+				else
+					print("No maxActiveCC");
+				end
+				print("Must tell "..objFirstSpell.FriendName.." to cast "..objFirstSpell.FriendSpellName.." in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
+--				local notifiedFriends = FriendList.new();
+--				for i,friendAndSpell in pairs(allSpells) do
+--					print("Checking first available spell");
+--					
+--					
+--					local strMessage = "";
+--					local objFriend = friendAndSpell.Friend
+--					local ccFriendSpell = friendAndSpell[2]
+--		
+--					if not (notifiedFriends:LookupGUID(objFriend.GUID)) then
+--						notifiedFriends:Add(objFriend);
+--					end
+--					
+--					
+--					strMessage = strMessage .. tostring(friendAndSpell.CDExpires).."|";
+--					--strMessage = strMessage .. tostring(friendAndSpell.DRXpires).."|";
+--	
+--					strMessage = strMessage .. FixedSizeString(friendAndSpell.FriendName, 20).."|";
+--					
+--					strMessage = strMessage .. FixedSizeString(friendAndSpell.FriendSpellName, 20).."|"
+--	--				
+--	--				Friend=objFoundFriend, 
+--	--        	FreindSpell=objFriendSpell, 
+--	--        	FriendName=objFoundFriend.Name, 
+--	--        	FriendSpellName=objFriendSpell.CCName, 
+--	--        	IsAvailable=objFriendSpell:IsAvailable(), 
+--	--        	CDExpires=objFriendSpell:CooldownExpires(), 
+--	--        	Duration=objFriendSpell.Duration,
+--	--        	DRLevel=drLevel,
+--	--        	DRExpires=drExpires
+--	
+--	----CRASHES- DONT Uncomment
+--	----				if (friendAndSpell.IsAvailable) then
+--	--				if (friendAndSpell.CCIsAvail == 1) then
+--	--					strMessage = strMessage .. "Available".."|";
+--	--				else
+--	--					strMessage = strMessage .. "COOLDOWN".."|";
+--	--				end
+--	
+--					--strMessage = strMessage .. friendAndSpell.CCIsAvail .."|";
+--		
+--					strMessage = strMessage .. tostring(friendAndSpell.Duration).."|";
+--					--strMessage = strMessage .. tostring(friendAndSpell.DRLevel).."|";
+--		
+--					frame.MessageFrame:AddMessage(strMessage);
+--					
+--				end				
 			else
 					frame.MessageFrame:AddMessage("No CC Spells available");
 			end

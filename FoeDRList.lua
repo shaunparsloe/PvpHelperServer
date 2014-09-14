@@ -15,15 +15,16 @@ end
 
 -- Build up a reverse lookup table so wek can have an index for the CCName
 function FoeDRList:Add(objDR)
-	print("ADDING DR: ");
+	--print("ADDING DR: " ..objDR.DRType);
   table.insert(self, objDR)
   self.DRTypeReverseLookupTable[tostring(objDR.DRType)] = table.getn(self)
-  --print("Inserted DRTYPE "..objDR.DRType);
+  --print("Inserted DRTYPE ["..objDR.DRType.."]");
   self:ListDRs();
 end
 
 -- Reverse lookup the DRType.  Return found FoeDR
 function FoeDRList:LookupDRType(strDRType)
+	--print("looking up ["..strDRType.."]")
   local foundId = self.DRTypeReverseLookupTable[tostring(strDRType)];
   if foundId then
     return self[foundId];

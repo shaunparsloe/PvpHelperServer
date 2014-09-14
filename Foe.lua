@@ -17,21 +17,33 @@ function Foe.new (options)
 end
 
 function Foe:CCAuraApplied(objCCSpell)
-  local objDR = self.DRList:LookupDRType(objCCSpell.DRType);
-  if objDR then
-    objDR:ApplyDR();
-  else
-    objDR = deepcopy(FoeDR.new(strDRType));
-    objDR:ApplyDR(objCCSpell.Duration);
-    self.DRList:Add(objDR);
-    
-    local objCC = deepcopy(objCCSpell)
-    objCC:CastSpell();
-    self.CCTypeList:Add(objCC)
-    
-  end
+	--print("DEBUG:Foe:CCAuraApplied: "..objCCSpell.DRType);
+  	local objDR = self.DRList:LookupDRType(objCCSpell.DRType);
+  	if objDR then
+  		--print("Found DRTYPE = "..objCCSpell.DRType..", Updating it!");
+    	objDR:ApplyDR(objCCSpell.Duration);
+  	else
+  		--print("Didn't find DRTYPE = "..objCCSpell.DRType..", Adding it new");
+  		local foeDR = FoeDR.new(objCCSpell.DRType);
+  		objDR = deepcopy(foeDR);
+    	objDR:ApplyDR(objCCSpell.Duration);
+    	
+    	self.DRList:Add(objDR);
+	end
 
-  return objDR;
+	local objCC = self.CCTypeList:LookupSpellId(objCCSpell.SpellId);
+	if objCC then
+		--print("Found FOECCTYPE = "..objCCSpell.SpellId..", Casting it!");
+		objCC:CastSpell();
+	else
+		--print("Did Not Find FOECCTYPE = "..objCCSpell.SpellId..", Adding it!");
+		objCC = deepcopy(GVAR.AllCCTypes:LookupSpellId(objCCSpell.SpellId));
+		objCC:CastSpell();
+		local objCCDR = deepcopy(objCC)
+    	self.CCTypeList:Add(objCCDR)
+	end
+	
+  	return objDR;
 end
   
 function Foe:CCAuraRemoved(objCCSpell)
