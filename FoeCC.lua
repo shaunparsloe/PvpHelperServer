@@ -1,0 +1,34 @@
+---- ****************************************************
+---- Class FoeCC
+---- ****************************************************
+--FoeCC={};
+--FoeCC.__index = FoeCC; -- failed table lookups on the instances should fallback to the class table, to get methods
+--
+--
+--function FoeCC.new(cctype)
+--  -- the new instance
+--  local self = setmetatable(
+--    {
+--    CCType = cctype,
+--    _TimeLastApplied = time(),
+--    _Expires = time() + cctype.Duration
+--    }, FoeCC)  
+--   -- return the instance
+--  return self
+--end
+--
+--function FoeCC:Expiry()
+--  local clocktime = time();
+--  local expSeconds = 0
+--  if self._Expires <= clocktime then 
+--    expSeconds = 0;
+--  else
+--    expSeconds = self._Expires - clocktime;
+--  end
+--	return expSeconds;
+--end
+--
+---- ****************************************************
+---- Class FoeCC
+---- ****************************************************
+--

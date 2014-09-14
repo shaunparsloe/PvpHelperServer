@@ -1,0 +1,264 @@
+---- ****************************************************
+---- Class PvPH_Server
+---- ****************************************************
+--PvPH_Server={};
+--PvPH_Server.__index = PvPH_Server -- failed table lookups on the instances should --fallback to the class table, to get methods
+--
+----Intialise the List
+--function PvPH_Server.new(options)
+--  -- the new instance
+--  print("Resetting the PvPHServer instance");
+--  local self = setmetatable({}, PvPH_Server)
+--  self.FriendList = options.FriendList
+--  self.FoeList = options.FoeList
+--  self.GlobalCCTypesList = CCTypeList:LoadAllCCTypes();
+--  self.GlobalCCDRList = CCDRList.LoadAllDRSpells();
+--  
+--
+--	  
+--  print("2Friends: ");
+--for i, k in pairs(options.FriendList) do
+--  print(i, k.Name)
+--end
+--  print("/2Friends: ");
+--	
+--  return self;
+--end
+--
+--function PvPH_Server:Apply_Aura(sourceGUID, sourceSpellId, destGUID)
+--  local objFoundFriend = self.FriendList:LookupGUID(sourceGUID);
+--  local objFriendSpell
+--  if objFoundFriend then
+--    objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
+--    if objFriendSpell then
+--      objFriendSpell:CastSpell();
+--    else
+--      print("PvPH_Server:Apply_Aura - Cannot find friend spell"..sourceSpellId)
+--    end
+--  else
+--    -- This aura wasn't applied by one of my friends:
+--  end
+--  local objFoundFoe = self.FoeList:LookupGUID(destGUID);
+----  if not objFoundFoe then
+---- So the aura was applied to someone, could be friend or foe...
+----    objFoundFoe = Foe.new({GUID=destGUID, Name="[unknown]", Class="[unknown]"})
+----    self.FoeList:Add(objFoundFoe)
+----  end
+--  if objFoundFoe and objFriendSpell then
+--    objFoundFoe:CCApplied(objFriendSpell.DRType)
+--  end
+--end  
+--
+--function PvPH_Server:Remove_Aura(destGUID, strSpellName)
+--  local objFoundFoe = self.FoeList:LookupGUID(destGUID);
+--  if not objFoundFoe then
+--    objFoundFoe = Foe.new({GUID=destGUID, Name="[unknown]", Class="[unknown]"})
+--    self.FoeList:Add(objFoundFoe)
+--  end
+--  if objFoundFoe then
+--    local drtype = self.GlobalCCDRList:LookupCCName(strSpellName);
+--    -- And apply to foe
+--    if drtype then
+--      objFoundFoe:CCRemoved(drtype.DRType)
+--    end
+--  end
+--end  
+--
+--function PvPH_Server:NextCCSpell(CCTarget1GUID)
+--  local returncctype1;
+--  local returncctype2;
+--  local objNextDR;
+--  
+--  --print("looking for FOE GUID "..CCTarget1GUID)
+--  local objFoundFoe = self.FoeList:LookupGUID(CCTarget1GUID);
+--  if not objFoundFoe then
+--    print("Cannot find foe in FOELIST")
+--    objFoundFoe = Foe.new({GUID=CCTarget1GUID, Name="[unknown]", Class="[unknown]"})
+--    self.FoeList:Add(objFoundFoe);
+--
+--    --for i,v in ipairs(self.FoeList) do
+--      --print(i..") "..v.GUID)
+--    --end
+--  end
+--  local allFriendSpells = self.FriendList.FriendCCTypesList;
+--  
+--  --local friend;
+----  local blnIsValidSpell = false;
+--  if objFoundFoe then
+--    --print("Found the foe!")
+--    for i, ccFriendSpell in ipairs(allFriendSpells) do
+--      --print("FriendSpell "..i.."). "..ccFriendSpell.SpellId)
+--      local objFoundFriend = self.FriendList:LookupGUID(ccFriendSpell.FriendGUID);
+--      if objFoundFriend then
+--        local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(ccFriendSpell.SpellId);
+--        --print("\nFriendSpell "..i.."). "..tostring(objFoundFriend.Name).." "..tostring(objFriendSpell.CCName))
+--        --ccSpell = self.GlobalCCTypesList:LookupSpellId(ccFriendSpell.SpellId);
+--    --    dr = CCTarget1.
+--        --print("DRTYPE:"..tostring(objFriendSpell.DRType))
+--        if objFriendSpell then
+--          local objDR = objFoundFoe.DRList:LookupDRType(objFriendSpell.DRType);
+--          if (objDR) then  
+--            --print("DRType = "..objDR.DRType.." level="..objDR:DRLevel().." cooldown="..objDR:Expires())
+--          end
+--          --lookup objFriendSpell.FriendGUID
+--          
+--          if objFoundFriend.CC_InRange == true then
+--            --print("Checking spell: '"..objFriendSpell.CCName.."' CastTime="..tostring(objFriendSpell.CastTime));
+--            --ccSpell:CastSpell();
+--            if objFriendSpell:IsAvailable() then
+--              if objDR then
+--                if objDR:DRLevel() == 0 then
+--                  --print("VALID: Found DR "..ccFriendSpell.DRType.." use "..i..") DRType="..tostring(ccFriendSpell.DRType)..", TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+--                  if not returncctype1 then 
+--                    returncctype1 = ccFriendSpell;
+--                    objNextDR = FoeDR.new(ccFriendSpell.DRType)
+--                  else
+--                    returncctype2 = ccFriendSpell;
+--                  end
+--                  if returncctype2 then
+--                    break
+--                  end
+--                else
+--                  --print(i..") FAIL: DRType="..tostring(ccFriendSpell.DRType).." [HAS DR LEVEL "..objDR:DRLevel()..", EXPIRES IN "..objDR:Expires().." SEC], TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+--                end
+--              else
+--                --print("VALID: DRType="..tostring(ccFriendSpell.DRType).." [HAS NO DR], TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+--                if not returncctype1 then 
+--                  returncctype1 = ccFriendSpell;
+--                  objNextDR = FoeDR.new(ccFriendSpell.DRType)
+--                else
+--                  returncctype2 = ccFriendSpell;
+--                end
+--                if returncctype2 then
+--                  break
+--                end
+--              end
+--            else
+--              --print(i..") FAIL: DRType="..tostring(ccFriendSpell.DRType).." [IS ON COOLDOWN.  COOLDOWN ENDS IN ".. time() - objFriendSpell:CooldownExpires() .."], TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+--            end
+--          else
+--            --print(i..") FAIL: "..objFoundFriend.Name.." is out of range")
+--          end
+--        end
+--      end
+--    end
+--  else
+--        print("Can't Found the foe in the FoeList!")
+--  end
+--  return returncctype1, returncctype2
+--
+--end
+--
+--
+--function PvPH_Server:OrderedCCSpells(CCTarget1GUID)
+--  local OrderedCCSpells = {};
+--
+--	
+--	if (CCTarget1GUID) then
+----		print("DEBUG: looking for FOE GUID "..CCTarget1GUID)
+--	  	local objFoundFoe = self.FoeList:LookupGUID(CCTarget1GUID);
+--		if objFoundFoe then
+----		print("DEBUG: Found FOE GUID "..CCTarget1GUID)
+--  			local allFriendSpells = self.FriendList.FriendCCTypesList;
+--
+--	for i, friend in ipairs(self.FriendList) do
+--		print("Friend: ".. friend.Name);
+--	end
+--		  	
+--		  	
+--		  	
+--		  	
+--    --print("Found the foe!")
+--    for i, ccFriendSpell in ipairs(allFriendSpells) do
+--    
+--      --print("FriendSpell "..i.."). "..ccFriendSpell.SpellId)
+--      local objFoundFriend = self.FriendList:LookupGUID(ccFriendSpell.FriendGUID);
+--      if objFoundFriend then
+--        local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(ccFriendSpell.SpellId);
+--        --print("\nFriendSpell "..i.."). "..tostring(objFoundFriend.Name).." "..tostring(objFriendSpell.CCName))
+--        --ccSpell = self.GlobalCCTypesList:LookupSpellId(ccFriendSpell.SpellId);
+--    --    dr = CCTarget1.
+--        --print("DRTYPE:"..tostring(objFriendSpell.DRType))
+--        if objFriendSpell then
+--        	print("inserting "..objFoundFriend.Name);
+--        	table.insert(OrderedCCSpells, {objFoundFriend, objFriendSpell});
+----          local objDR = objFoundFoe.DRList:LookupDRType(objFriendSpell.DRType);
+----          if (objDR) then  
+----            --print("DRType = "..objDR.DRType.." level="..objDR:DRLevel().." cooldown="..objDR:Expires())
+----          end
+----          --lookup objFriendSpell.FriendGUID
+----          
+----          if objFoundFriend.CC_InRange == true then
+----            --print("Checking spell: '"..objFriendSpell.CCName.."' CastTime="..tostring(objFriendSpell.CastTime));
+----            --ccSpell:CastSpell();
+----            if objFriendSpell:IsAvailable() then
+----              if objDR then
+----                if objDR:DRLevel() == 0 then
+----                  --print("VALID: Found DR "..ccFriendSpell.DRType.." use "..i..") DRType="..tostring(ccFriendSpell.DRType)..", TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+----                  if not returncctype1 then 
+----                    returncctype1 = ccFriendSpell;
+----                    objNextDR = FoeDR.new(ccFriendSpell.DRType)
+----                  else
+----                    returncctype2 = ccFriendSpell;
+----                  end
+----                  if returncctype2 then
+----                    break
+----                  end
+----                else
+----                  --print(i..") FAIL: DRType="..tostring(ccFriendSpell.DRType).." [HAS DR LEVEL "..objDR:DRLevel()..", EXPIRES IN "..objDR:Expires().." SEC], TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+----                end
+----              else
+----                --print("VALID: DRType="..tostring(ccFriendSpell.DRType).." [HAS NO DR], TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+----                if not returncctype1 then 
+----                  returncctype1 = ccFriendSpell;
+----                  objNextDR = FoeDR.new(ccFriendSpell.DRType)
+----                else
+----                  returncctype2 = ccFriendSpell;
+----                end
+----                if returncctype2 then
+----                  break
+----                end
+----              end
+----            else
+----              --print(i..") FAIL: DRType="..tostring(ccFriendSpell.DRType).." [IS ON COOLDOWN.  COOLDOWN ENDS IN ".. time() - objFriendSpell:CooldownExpires() .."], TeamGUID("..ccFriendSpell.FriendGUID..") Name="..ccFriendSpell.FriendName..": Weighting="..ccFriendSpell.Weighting.." Spell("..ccFriendSpell.SpellId..") ")
+----            end
+----          else
+----            --print(i..") FAIL: "..objFoundFriend.Name.." is out of range")
+----          end
+----        end
+--        else
+--        	print("Cannot find friendSpell for " .. ccFriendSpell.CCName);
+--        end
+--      else
+--      	print("Cannot find friend with GUID " ..FriendGUID.. " in FriendList");
+--      end
+--    end
+--
+--
+--		  	
+--		  	
+--		  	
+--		  	--	table.insert(OrderedCCSpells, "FOUND A SPELL");
+--		else
+--	    	print("Cannot find foe with GUID " .. CCTarget1GUID .. " in FOELIST")
+----	    objFoundFoe = Foe.new({GUID=CCTarget1GUID, Name="[unknown]", Class="[unknown]"})
+----	    self.FoeList:Add(objFoundFoe);
+----	
+--    --for i,v in ipairs(self.FoeList) do
+--      --print(i..") "..v.GUID)
+--    --end
+--  		end
+--  	else 
+--		print("No Guid Passed To calculate OrderedCCSpells");
+--  	end    
+--
+--	return OrderedCCSpells;
+--  
+--  
+--end
+--
+--
+---- ****************************************************
+---- Class PvPH_Server
+---- ****************************************************
+--

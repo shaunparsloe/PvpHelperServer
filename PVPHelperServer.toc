@@ -1,0 +1,29 @@
+## Interface: 50400
+## X-Min-Interface: 50001
+## Title:|cffffd200PVP Helper|r |cff69ccf0Server|r
+## Notes: PVP Helper - Main Target selector and CC Caller
+## SavedVariablesPerCharacter: PVPHelperServer_SavedOptions
+## LoadOnDemand: 0
+## DefaultState: enabled
+## Dependencies: PvPHelperLibrary
+## Author: Vordermann
+Localization.lua
+
+CCDR.lua
+CCDRList.lua
+Foe.lua
+FoeDR.lua
+FoeDRList.lua
+FoeList.lua
+Friend.lua
+FriendCCType.lua
+FriendCCTypeList.lua
+FriendList.lua
+
+PVPH_Server.lua
+SlashCommands.lua
+UI.lua
+Utils.lua
+
+PVPHelperServer.lua
+
