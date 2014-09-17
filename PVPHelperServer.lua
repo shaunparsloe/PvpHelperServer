@@ -25,8 +25,8 @@ function PvPHelperServer.new (options)
 	self.Notification=nil;
 	self.LastSentNotification = Notification.new({Seconds=0});
 
-	self.Message = Message.new();
-	self.Message.Prefix = "PvPHelperClient";
+	self.Message = deepcopy(Message.new());
+	self.Message.ReceivePrefix = "PvPHelperServer";	
 
 	self.FriendList = FriendList.new();
 	self.FoeList = FoeList.new();
@@ -281,15 +281,14 @@ function PvPHelperServer:SendNotifications()
 --		local objMessage = Message.new();
 --		objMessage.Prefix = "PvPHelperClient";
 --		objMessage:SendMessagePrefixed("PvPHelperClient", strMessage, note.SpellId, note.To)
-	  	self:SendMessage("WhatSpellsDoYouHave", nil, note.To);
+	  	self:SendMessage("WhatSpellsDoYouHave", 123456, note.To);
 
 	end
 end
 
 
 function PvPHelperServer:MessageReceived(strPrefix, strMessage, strType, strSender)
-  --print("DEBUG: PvpHelperServer - Message Received "..strMessage);
---  print("DEBUG: PvpHelperServer - Message Received "..self.Message.Header..strSender);
+  print("DEBUG: PvpHelperServer - Message Received "..strMessage..", "..tostring(strType)..", "..strSender);
   
   -- TODO: REmove this comment - it could be that we're pinging back message received comments every time!!!
   -- We have commented this out to try to fix a bug with 2x CCTypes messages causing errors.
@@ -537,7 +536,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 		print("Got no CCTarget1 button");
 	end
 
-	print("SendNotifications");
+	--print("SendNotifications");
 			--objPvPServer:SendMessage("BLAHBLAH", "15487", "Vordermann-Hellfire");
 	objPvPServer:SendNotifications()	;
 
