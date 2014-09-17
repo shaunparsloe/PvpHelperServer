@@ -456,9 +456,15 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 			if (allSpells) then
 				local objFirstSpell = allSpells[1];
 				local objFoe = objFirstSpell.Foe;
+				local objSpell = objFirstSpell.FreindSpell;
 				local nextCast = math.max(objFirstSpell.DRXpires, objFirstSpell.CDExpires);
 				local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
-				print("Must tell "..objFirstSpell.FriendName.." to cast "..objFirstSpell.FriendSpellName.." in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
+				print("Must tell "..objFirstSpell.FriendName.." to cast "..objSpell.CCName.."("..tostring(objSpell.SpellId)..") in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
+				local note = Notification.new( {To = objFirstSpell.FriendName,
+				    SpellId = objSpell.SpellId,
+				    Seconds = math.max(nextCast+maxActiveCC), 
+				    Message = ""});
+				objPvPServer.NotificationServer:SetNotification(note);
 			else
 				frame.MessageFrame:AddMessage("No CC Spells available");
 			end
@@ -468,6 +474,10 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 	else
 		print("Got no CCTarget1 button");
 	end
+
+	print("SendNotifications");
+			--objPvPServer:SendMessage("BLAHBLAH", "15487", "Vordermann-Hellfire");
+	objPvPServer.NotificationServer:SendNotifications()	;
 
 --	print("For now, for testing only, hard-code GUID")
 --

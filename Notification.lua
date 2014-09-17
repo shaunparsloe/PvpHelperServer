@@ -8,31 +8,35 @@ NotificationServer.__index = NotificationServer -- failed table lookups on the i
 function NotificationServer.new (pvpServer)
 	local self = setmetatable(
   	{
-		Parent=pvpServer,	-- Circular reference back to the parent 
 		Notification=nil,
-		LastSentNotification = Notification.new();
-  	}, Notification)
+		LastSentNotification = Notification.new({Seconds=0});
+  	}, NotificationServer)
 	-- return the instance
+
 	return self;
 end
 
 
 function NotificationServer:SetNotification(notification)
+
 	if (self.LastSentNotification.To == notification.To and self.LastSentNotification.SpellId == notification.SpellId) then
+	--	print("DEBUG: Notification: Have sent before");
 		-- So we have already notified this person about this spell before
 		-- So, if we've told them to act in 10sec, but suddenly want to tell them to act now, then override that way.
 		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
-			self.LastSentNotification.Seconds = 0;
-			self.LastSentNotification.ExecutionTime = time();
+			print("DEBUG: Notification: Updating notification");
+			self.Notification.Seconds = 0;
+			self.Notification.ExecutionTime = time();
 		end
 	else
 		-- Ok, so this is the first time this person+Spell combination has been called.
-		-- Normally will be a "Prepare to Act" kind of instruction
-		self.LastSentNotification = deepcopy(notification);
+		-- Normally will be a "Prepare to Act" kind of instruction, but could be an "Act Now" action too.
+		print("DEBUG: Notification: First notification");
+		self.Notification = deepcopy(notification);
 	end		
-
-	self.LastSentNotification.Message = notification.Message;
-	self.LastSentNotification.TimeLastApplied = time();
+	
+	self.Notification.Message = notification.Message;
+	self.Notification.TimeLastApplied = time();
 	
 end
 
@@ -41,6 +45,9 @@ end
 function NotificationServer:SendNotifications()
 	local note = self.Notification;
 	if (note) then
+		print("DEBUG: note.ExecutionTime ".. note.ExecutionTime.." time "..time());
+		
+		local strMessage = "PrepareToAct";
 		
 		if (note.ExecutionTime + 11 <= time()) then
 			strMessage = "VeryLateActNow";
@@ -58,10 +65,18 @@ function NotificationServer:SendNotifications()
 			strMessage = "PrepareToAct";
 		end
 		
-		local strMessage = "PrepareToAct";
-		self.Parent:SendMessage(strMessage, note.SpellId, note.To)
+		-- Debug testing!
+		--self:SendMessage(strMessage, note.SpellId, note.To)
+		print("DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
+		local objMessage = Message.new();
+		objMessage.Prefix = "PvPHelperClient";
+		objMessage:SendMessagePrefixed("PvPHelperClient", strMessage, note.SpellId, note.To)
+
 	end
 end
+
+
+
 
 -- ****************************************************
 -- Class Notification
