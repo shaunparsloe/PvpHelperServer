@@ -21,6 +21,10 @@ local CONSTANTS = {};
 function PvPHelperServer.new (options)
 	local self = setmetatable({}, PvPHelperServer)
   
+  
+	self.Notification=nil;
+	self.LastSentNotification = Notification.new({Seconds=0});
+
 	self.Message = Message.new();
 	self.Message.Prefix = "PvPHelperClient";
 
@@ -38,7 +42,6 @@ function PvPHelperServer.new (options)
   
 	self:Initialize();
 
-	self.NotificationServer = NotificationServer.new(self);
 	PvPHelperServer_MainFrame = CreateUIElements(self);
 
 	RegisterMainFrameEvents(self);
@@ -52,6 +55,9 @@ function PvPHelperServer:Initialize()
   self.MessageLog = {}
   self.MessageLog.Sent = {}
   self.MessageLog.Received= {}
+
+	self.Notification=nil;
+	self.LastSentNotification = Notification.new({Seconds=0});
 
     local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
     local objFriendList = FriendList.new()
@@ -223,6 +229,62 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 end
 
 
+function PvPHelperServer:SetNotification(notification)
+
+	if (self.LastSentNotification.To == notification.To and self.LastSentNotification.SpellId == notification.SpellId) then
+	--	print("DEBUG: Notification: Have sent before");
+		-- So we have already notified this person about this spell before
+		-- So, if we've told them to act in 10sec, but suddenly want to tell them to act now, then override that way.
+		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
+			print("DEBUG: Notification: Updating notification");
+			self.Notification.Seconds = 0;
+			self.Notification.ExecutionTime = time();
+		end
+	else
+		-- Ok, so this is the first time this person+Spell combination has been called.
+		-- Normally will be a "Prepare to Act" kind of instruction, but could be an "Act Now" action too.
+		print("DEBUG: Notification: First notification");
+		self.Notification = deepcopy(notification);
+	end		
+	
+	self.Notification.Message = notification.Message;
+	self.Notification.TimeLastApplied = time();
+	
+end
+
+function PvPHelperServer:SendNotifications()
+	local note = self.Notification;
+	if (note) then
+		print("DEBUG: note.ExecutionTime ".. note.ExecutionTime.." time "..time());
+		
+		local strMessage = "PrepareToAct";
+		
+		if (note.ExecutionTime + 11 <= time()) then
+			strMessage = "VeryLateActNow";
+		elseif (note.ExecutionTime + 8 <= time()) then
+			strMessage = "VeryLateActNow";
+		elseif (note.ExecutionTime + 6 <= time()) then
+			strMessage = "LateActNow";
+		elseif (note.ExecutionTime + 4 <= time()) then
+			strMessage = "LateActNow";
+		elseif (note.ExecutionTime + 1 <= time()) then
+			strMessage = "ActNow";
+		elseif (note.ExecutionTime <= time()) then
+			strMessage = "ActNow";
+		elseif (note.ExecutionTime -4 <= time() ) then
+			strMessage = "PrepareToAct";
+		end
+		
+		-- Debug testing!
+		--self:SendMessage(strMessage, note.SpellId, note.To)
+		print("DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
+--		local objMessage = Message.new();
+--		objMessage.Prefix = "PvPHelperClient";
+--		objMessage:SendMessagePrefixed("PvPHelperClient", strMessage, note.SpellId, note.To)
+	  	self:SendMessage("WhatSpellsDoYouHave", nil, note.To);
+
+	end
+end
 
 
 function PvPHelperServer:MessageReceived(strPrefix, strMessage, strType, strSender)
@@ -464,7 +526,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 				    SpellId = objSpell.SpellId,
 				    Seconds = math.max(nextCast+maxActiveCC), 
 				    Message = ""});
-				objPvPServer.NotificationServer:SetNotification(note);
+				objPvPServer:SetNotification(note);
 			else
 				frame.MessageFrame:AddMessage("No CC Spells available");
 			end
@@ -477,7 +539,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 
 	print("SendNotifications");
 			--objPvPServer:SendMessage("BLAHBLAH", "15487", "Vordermann-Hellfire");
-	objPvPServer.NotificationServer:SendNotifications()	;
+	objPvPServer:SendNotifications()	;
 
 --	print("For now, for testing only, hard-code GUID")
 --
