@@ -84,7 +84,8 @@ function PvPHelperServer:ResetFriendsAndFoes(options)
   	for i, k in pairs(self.FriendList) do
 		if (k.Name) then
 	  		print("PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
-	  		self:SendMessage("WhatSpellsDoYouHave", nil, k.Name);
+	  		self:SendMessage("WhatSpellsDoYouHave", 1234556, k.Name);
+			self:SendMessage("PrepareToAct", 64044, k.Name);	  			
 	  		--self:SendMessage("DummyTestMessage", nil, k.Name)
 	  	end
 	end
@@ -278,10 +279,8 @@ function PvPHelperServer:SendNotifications()
 		-- Debug testing!
 		--self:SendMessage(strMessage, note.SpellId, note.To)
 		print("DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
---		local objMessage = Message.new();
---		objMessage.Prefix = "PvPHelperClient";
---		objMessage:SendMessagePrefixed("PvPHelperClient", strMessage, note.SpellId, note.To)
-	  	self:SendMessage("WhatSpellsDoYouHave", 123456, note.To);
+	  	self:SendMessage(strMessage, note.SpellId, note.To);
+	  	
 
 	end
 end
@@ -306,7 +305,7 @@ end
 function PvPHelperServer:SendMessage(strMessage, strTarget, strTo)
   local objSentMessage = self.Message:SendMessagePrefixed("PvPHelperClient", strMessage, strTarget, strTo);
 --  self.MessageLog.Sent[strMessage] = Message:Clone(objSentMessage)
-  self.MessageLog.Sent[strMessage] = Message:Clone(objSentMessage)
+ -- self.MessageLog.Sent[strMessage] = Message:Clone(objSentMessage)
 end
 
 function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
