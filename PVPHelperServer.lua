@@ -237,14 +237,14 @@ function PvPHelperServer:SetNotification(notification)
 		-- So we have already notified this person about this spell before
 		-- So, if we've told them to act in 10sec, but suddenly want to tell them to act now, then override that way.
 		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
-			print("DEBUG: Notification: Updating notification");
+			--print("DEBUG: Notification: Updating notification");
 			self.Notification.Seconds = 0;
 			self.Notification.ExecutionTime = time();
 		end
 	else
 		-- Ok, so this is the first time this person+Spell combination has been called.
 		-- Normally will be a "Prepare to Act" kind of instruction, but could be an "Act Now" action too.
-		print("DEBUG: Notification: First notification");
+		--print("DEBUG: Notification: First notification");
 		self.Notification = deepcopy(notification);
 	end		
 	
@@ -256,7 +256,7 @@ end
 function PvPHelperServer:SendNotifications()
 	local note = self.Notification;
 	if (note) then
-		print("DEBUG: note.ExecutionTime ".. note.ExecutionTime.." time "..time());
+		--print("DEBUG: note.ExecutionTime ".. note.ExecutionTime.." time "..time());
 		
 		local strMessage = "PrepareToAct";
 		
@@ -278,7 +278,7 @@ function PvPHelperServer:SendNotifications()
 		
 		-- Debug testing!
 		--self:SendMessage(strMessage, note.SpellId, note.To)
-		print("DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
+		--print("DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
 	  	self:SendMessage(strMessage, note.SpellId, note.To);
 	  	
 
@@ -519,12 +519,30 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 				local objSpell = objFirstSpell.FreindSpell;
 				local nextCast = math.max(objFirstSpell.DRXpires, objFirstSpell.CDExpires);
 				local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
-				print("Must tell "..objFirstSpell.FriendName.." to cast "..objSpell.CCName.."("..tostring(objSpell.SpellId)..") in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
+				--print("DEBUG:PVPHelperServer_OnUpdate: Must tell "..objFirstSpell.FriendName.." to cast "..objSpell.CCName.."("..tostring(objSpell.SpellId)..") in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
 				local note = Notification.new( {To = objFirstSpell.FriendName,
 				    SpellId = objSpell.SpellId,
 				    Seconds = math.max(nextCast+maxActiveCC), 
 				    Message = ""});
 				objPvPServer:SetNotification(note);
+				
+			    for i, objSpell in ipairs(allSpells) do
+			    	objFoe = objSpell.Foe;
+					objFriendSpell = objSpell.FreindSpell;
+					nextCast = math.max(objSpell.DRXpires, objSpell.CDExpires);
+					maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
+					frame.MessageFrame:AddMessage(
+					tostring(objSpell.CDExpires)
+					..", "..tostring(objSpell.DRXpires)
+					..", "..tostring(objFriendSpell.CCName)
+					..", "..tostring(objFriendSpell._IsCooldown)
+					..", "..tostring(objFriendSpell:IsAvailable())
+					..", "..tostring(objFriendSpell.Duration)
+					..", "..tostring(objSpell.DRLevel)
+					
+					);
+			    end
+
 			else
 				frame.MessageFrame:AddMessage("No CC Spells available");
 			end
