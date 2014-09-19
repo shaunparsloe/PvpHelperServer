@@ -23,7 +23,7 @@ function PvPHelperServer.new (options)
 	
 	
 	self.Notification=nil;
-	self.LastSentNotification = Notification.new({Seconds=0});
+	self.LastSentNotification = Notification.new({SpellId=0,To=0,Seconds=0});
 
 	self.Message = deepcopy(Message.new());
 	self.Message.ReceivePrefix = "PvPHelperServer";	
@@ -147,68 +147,66 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 			--objFoundFoe.DRList:ListDRs();
 		if objFoundFoe then
 		--print("DEBUG: Found FOE GUID "..CCTarget1GUID)
-				local allFriendSpells = self.FriendList.FriendCCTypesList;
+			local allFriendSpells = self.FriendList.FriendCCTypesList;
 
-				
-				for i, ccFriendSpell in ipairs(allFriendSpells) do
-				
-					--print("FriendSpell "..i.."). "..ccFriendSpell.SpellId)
-					local objFoundFriend = self.FriendList:LookupGUID(ccFriendSpell.FriendGUID);
-					if objFoundFriend then
-				local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(ccFriendSpell.SpellId);
-				
-				local isAvail;
-				if (objFriendSpell:IsAvailable()) then
-					isAvail = "Available";
-				else
-					isAvail = "COOLDOWN";
-				end
-		
-				
-				local cdExpires = objFriendSpell:CooldownExpires();
-
-				local objDR = objFoundFoe.DRList:LookupDRType(objFriendSpell.DRType);
-				local drLevel = 0;
-				local drExpires	= 0;
-				if (objDR) then 
-					objDR:Recalculate();
-					drExpires = objDR.DRExpires -- relative_valueof(objDR.DRExpires);
-					drLevel = objDR.DRLevel;
-				else
-					drExpires = 0;
-				end
-
-						if objFriendSpell then
-							table.insert(OrderedCCSpells, 
-							{
-							Friend=objFoundFriend,
-							Foe=objFoundFoe, 
-							FreindSpell=objFriendSpell, 
-							FriendName=objFoundFriend.Name, 
-							FriendSpellName=objFriendSpell.CCName, 
-							CCIsAvail=isAvail,
-						CDExpires=cdExpires,
-							Duration=objFriendSpell.Duration,
-							DRLevel=drLevel,
-							DRXpires=drExpires,
-							Weighting=objFriendSpell.Weighting
-							});
 			
-						else
-							print("Cannot find friendSpell for " .. ccFriendSpell.CCName);
-						end
+			for i, ccFriendSpell in ipairs(allFriendSpells) do
+			
+				--print("FriendSpell "..i.."). "..ccFriendSpell.SpellId)
+				local objFoundFriend = self.FriendList:LookupGUID(ccFriendSpell.FriendGUID);
+				if objFoundFriend then
+					local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(ccFriendSpell.SpellId);
+					
+					local isAvail;
+					if (objFriendSpell:IsAvailable()) then
+						isAvail = "Available";
 					else
-						print("Cannot find friend with GUID " ..FriendGUID.. " in FriendList");
+						isAvail = "COOLDOWN";
 					end
-				end
+			
+					
+					local cdExpires = objFriendSpell:CooldownExpires();
 		
-
+					local objDR = objFoundFoe.DRList:LookupDRType(objFriendSpell.DRType);
+					local drLevel = 0;
+					local drExpires	= 0;
+					if (objDR) then 
+						objDR:Recalculate();
+						drExpires = objDR.DRExpires -- relative_valueof(objDR.DRExpires);
+						drLevel = objDR.DRLevel;
+					else
+						drExpires = 0;
+					end
+			
+					if objFriendSpell then
+						table.insert(OrderedCCSpells, 
+						{
+						Friend=objFoundFriend,
+						Foe=objFoundFoe, 
+						FreindSpell=objFriendSpell, 
+						FriendName=objFoundFriend.Name, 
+						FriendSpellName=objFriendSpell.CCName, 
+						CCIsAvail=isAvail,
+					CDExpires=cdExpires,
+						Duration=objFriendSpell.Duration,
+						DRLevel=drLevel,
+						DRXpires=drExpires,
+						Weighting=objFriendSpell.Weighting
+						});
+		
+					else
+						print("Cannot find friendSpell for " .. ccFriendSpell.CCName);
+					end
+				else
+					print("Cannot find friend with GUID " ..FriendGUID.. " in FriendList");
+				end
+			end	
 		else
-				print("Cannot find foe with GUID " .. CCTarget1GUID .. " in FOELIST")
-			end
-		else 
+			print("Cannot find foe with GUID " .. CCTarget1GUID .. " in FOELIST")
+		end
+	else 
 		print("No Guid Passed To calculate OrderedCCSpells");
-		end		
+	end		
 
 	-- Order by Cooldown, DR Remaining, Spell Weighting		
 	table.sort(OrderedCCSpells, 
@@ -221,7 +219,7 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 							end
 						end
 					end
-						return retval;
+					return retval;
 				end
 		);
 	
@@ -236,27 +234,20 @@ function PvPHelperServer:SetNotification(notification)
 		--print("DEBUG: Notification: Have sent before");
 		-- So we have already notified this person about this spell before
 		-- So, if we've told them to act in 10sec, but suddenly want to tell them to act now, then override that way.
-		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
-			print("DEBUG: Notification: Updating notification");
-			self.Notification.Seconds = 0;
-			self.Notification.ExecutionTime = time();
-		end
+--		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
+--			print("DEBUG: Notification: Updating notification");
+--			self.Notification.Seconds = 0;
+--			self.Notification.ExecutionTime = time();
+--		end
 	else
 		-- Ok, so this is the first time this person+Spell combination has been called.
 		-- Normally will be a "Prepare to Act" kind of instruction, but could be an "Act Now" action too.
 		print("DEBUG: Notification: First notification");
 		self.Notification = deepcopy(notification);
 
-		self.Sent11 = false;
-		self.Sent8 = false;
-		self.Sent6 = false;
-		self.Sent4 = false;
-		self.Sent1 = false;
-		self.Sent0 = false;
-		self.Sent_4 = false;
-
 	end		
 	
+
 	self.Notification.Message = notification.Message;
 	self.Notification.TimeLastApplied = time();
 	
@@ -271,45 +262,53 @@ function PvPHelperServer:SendNotifications()
 		local strMessage = nil;
 		local strAppend = "";
 		
-		if (note.ExecutionTime + 11 <= time() and not self.Sent11) then
-			print("Send11")
+		if note.ExecutionTime + 11 <= time() then
 			strMessage = "VeryLateActNow";
-			self.Sent11 = true;
-		elseif (note.ExecutionTime + 8 <= time() and not self.Sent8) then
-			print("Send8")
+			executeTime = note.ExecutionTime + 11;
+		elseif note.ExecutionTime + 8 <= time() then
 			strMessage = "VeryLateActNow";
-			self.Sent8 = true;
-		elseif (note.ExecutionTime + 6 <= time() and not self.Sent6) then
+			executeTime = note.ExecutionTime + 8;
+		elseif note.ExecutionTime + 6 <= time() then
 			strMessage = "LateActNow";
-			self.Sent6 = true;
-		elseif (note.ExecutionTime + 4 <= time() and not self.Sent4) then
+			executeTime = note.ExecutionTime + 6;
+		elseif note.ExecutionTime + 4 <= time() then
 			strMessage = "LateActNow";
-			self.Sent4 = true;
-		elseif (note.ExecutionTime + 1 <= time() and not self.Sent1) then
+			executeTime = note.ExecutionTime + 4;
+		elseif note.ExecutionTime + 1 <= time() then
 			print("Sent1:");
 			strMessage = "ActNow";
-			self.Sent1 = true;
-		elseif (note.ExecutionTime <= time() and not self.Sent0) then
+			executeTime = note.ExecutionTime + 1;
+		elseif note.ExecutionTime <= time() then
 			print("Sent0:");
 			strMessage = "ActNow";
-			self.Sent0 = true;
-		elseif (note.ExecutionTime -7 <= time() and not self.Sent_4) then
+			executeTime = note.ExecutionTime;
+		elseif note.ExecutionTime > time() then
 			strMessage = "PrepareToAct";
+			--print("DEBUG:PrepareToAct:Seconds:"..note.Seconds..", time:"..note.ExecutionTime)
 			strAppend = ","..tostring(note.ExecutionTime - time());
-			self.Sent_4 = true;
+			executeTime = note.ExecutionTime;
 		end
 		
-		-- Debug testing!
-		--self:SendMessage(strMessage, note.SpellId, note.To)
-		if strMessage then
-			print("DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
-			self:SendMessage(strMessage, note.SpellId..strAppend, note.To);
-			self.LastSentNotification = deepcopy(note);
-		end
+		timeDiff = self.LastSentNotification.ExecutionTime - executeTime;
+		
+		if self.LastSentNotification then
+			--print("Compare "..strMessage..": "..tostring(self.LastSentNotification.SpellId).."="..note.SpellId..", "..tostring(self.LastSentNotification.SentTime).."="..executeTime..", diff:"..math.abs(self.LastSentNotification.ExecutionTime - executeTime));
+			if not (self.LastSentNotification.To == note.To 
+				and self.LastSentNotification.SpellId == note.SpellId
+				and math.abs(self.LastSentNotification.TimeDiff - timeDiff) < 0.5	) then
 
+				if strMessage then
+					print("PvPHelperServer DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
+					self:SendMessage(strMessage, note.SpellId..strAppend, note.To);
+					note.SentTime = time();
+					note.TimeDiff = timeDiff;
+					self.LastSentNotification = deepcopy(note);
+				end
+		
+			end
+		end
 	end
 end
-
 
 function PvPHelperServer:MessageReceived(strPrefix, strMessage, strType, strSender)
 	print("DEBUG: PvpHelperServer - Message Received "..strMessage..", "..tostring(strType)..", "..strSender);
@@ -547,7 +546,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 				--print("DEBUG:PVPHelperServer_OnUpdate: Must tell "..objFirstSpell.FriendName.." to cast "..objSpell.CCName.."("..tostring(objSpell.SpellId)..") in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
 				local note = Notification.new( {To = objFirstSpell.FriendName,
 						SpellId = objSpell.SpellId,
-						Seconds = math.max(nextCast+maxActiveCC), 
+						Seconds = math.max(nextCast, maxActiveCC), 
 						Message = ""});
 				objPvPServer:SetNotification(note);
 				
