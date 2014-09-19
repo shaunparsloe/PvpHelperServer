@@ -296,11 +296,13 @@ function PvPHelperServer:SendNotifications()
 			--print("Compare "..strMessage..": "..tostring(self.LastSentNotification.SpellId).."="..note.SpellId..", "..tostring(self.LastSentNotification.SentTime).."="..executeTime..", diff:"..math.abs(self.LastSentNotification.ExecutionTime - executeTime));
 			if not (self.LastSentNotification.To == note.To 
 				and self.LastSentNotification.SpellId == note.SpellId
+				and self.LastSentNotification.Message == strMessage
 				and math.abs(self.LastSentNotification.TimeDiff - timeDiff) < 0.5	) then
 
 				if strMessage then
 					print("PvPHelperServer DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
 					self:SendMessage(strMessage, note.SpellId..strAppend, note.To);
+					note.Message = strMessage;
 					note.SentTime = time();
 					note.TimeDiff = timeDiff;
 					self.LastSentNotification = deepcopy(note);
