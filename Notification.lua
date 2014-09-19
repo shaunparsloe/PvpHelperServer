@@ -14,6 +14,8 @@ function Notification.new (options)
     Seconds = options.Seconds, 
     Message = options.Message,
     TimeLastApplied = time(),
+    SentTime = 0,
+    TimeDiff = 0,
     ExecutionTime = time() + options.Seconds
   }
   , Notification)
