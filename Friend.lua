@@ -9,7 +9,7 @@ function Friend.new (options)
   self.ContainedInLists = {}
   self.GUID = options.GUID
   self.Name = options.Name
-  print("My name is: "..self.Name);
+  --print("My name is: "..self.Name);
   self.CCTypes = options.CCTypes
   self.CC_InRange = true
   return self

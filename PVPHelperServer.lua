@@ -10,7 +10,7 @@ PvPHelperServer = {}
 PvPHelperServer_MainFrame = {}
 PvPHelperServer.__index = PvPHelperServer; -- failed table lookups on the instances should fallback to the class table, to get methods
 
-
+local xDebug = false
 local L = PVPHelper_LocalizationTable;
 
 -- Globals Section
@@ -52,7 +52,7 @@ end
 
 
 function PvPHelperServer:Initialize()
-	print("DEBUG: PvpHelperServer - Initializing");
+	--print("DEBUG: PvpHelperServer - Initializing");
 	self.MessageLog = {}
 	self.MessageLog.Sent = {}
 	self.MessageLog.Received= {}
@@ -63,7 +63,7 @@ function PvPHelperServer:Initialize()
 		local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
 		local objFriendList = FriendList.new()
 		objFriendList:Add(objFriend)
-		print("Clearing FoeList");
+		--print("Clearing FoeList");
 		local objFoeList = FoeList.new()
 		self:ResetFriendsAndFoes({FriendList = objFriendList, FoeList = objFoeList})
 
@@ -76,7 +76,7 @@ end
 
 function PvPHelperServer:ResetFriendsAndFoes(options)
 	-- the new instance
-	print("Resetting the PvPHelperServer:ResetFriendsAndFoes instance");
+	--print("Resetting the PvPHelperServer:ResetFriendsAndFoes instance");
 	self.FriendList = options.FriendList
 	self.FoeList = options.FoeList
 	self.GlobalCCTypesList = CCTypeList:LoadAllCCTypes();
@@ -84,7 +84,7 @@ function PvPHelperServer:ResetFriendsAndFoes(options)
 	
 		for i, k in pairs(self.FriendList) do
 		if (k.Name) then
-				print("PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
+				--print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
 				self:SendMessage("WhatSpellsDoYouHave", 1234556, k.Name);
 			--self:SendMessage("PrepareToAct", "64044,25", k.Name);					
 				--self:SendMessage("DummyTestMessage", nil, k.Name)
@@ -101,7 +101,7 @@ function PvPHelperServer:Apply_Aura(sourceGUID, sourceSpellId, destGUID)
 	if objFoundFriend then
 		objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
 		if objFriendSpell then
-			print("PvPH_Server:Apply_Aura -CAST SPELL 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID..", ccName: "..objFriendSpell.CCName .." ccType)"..objFriendSpell.CCType)
+			--print("PvPH_Server:Apply_Aura -CAST SPELL 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID..", ccName: "..objFriendSpell.CCName .." ccType)"..objFriendSpell.CCType)
 			objFriendSpell:CastSpell();
 
 
@@ -133,7 +133,11 @@ function PvPHelperServer:Remove_Aura(destGUID, spellId)
 		-- And apply to foe
 		if cctype then
 			objFoundFoe:CCAuraRemoved(cctype)
+    else
+      print("Cannot find cctype");
 		end
+  else
+    print("Cannot find Foe");
 	end
 end	
 
@@ -174,7 +178,7 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 					if (objDR) then 
 						objDR:Recalculate();
 						drExpires = objDR.DRExpires -- relative_valueof(objDR.DRExpires);
-						drLevel = objDR.DRLevel;
+						drLevel = objDR:DRLevel();
 					else
 						drExpires = 0;
 					end
@@ -231,25 +235,24 @@ end
 
 function PvPHelperServer:SetNotification(notification)
 
-	if (self.LastSentNotification.To == notification.To and self.LastSentNotification.SpellId == notification.SpellId) then
-		--print("DEBUG: Notification: Have sent before");
-		-- So we have already notified this person about this spell before
-		-- So, if we've told them to act in 10sec, but suddenly want to tell them to act now, then override that way.
---		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
---			print("DEBUG: Notification: Updating notification");
---			self.Notification.Seconds = 0;
---			self.Notification.ExecutionTime = time();
---		end
-	else
-		-- Ok, so this is the first time this person+Spell combination has been called.
-		-- Normally will be a "Prepare to Act" kind of instruction, but could be an "Act Now" action too.
-		print("DEBUG: Notification: First notification");
-		self.Notification = deepcopy(notification);
-
-	end		
-	
-
-	self.Notification.Message = notification.Message;
+--	if (self.LastSentNotification.To == notification.To and self.LastSentNotification.SpellId == notification.SpellId) then
+--		--print("DEBUG: Notification: Have sent before");
+--		-- So we have already notified this person about this spell before
+--		-- So, if we've told them to act in 10sec, but suddenly want to tell them to act now, then override that way.
+----		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
+----			print("DEBUG: Notification: Updating notification");
+----			self.Notification.Seconds = 0;
+----			self.Notification.ExecutionTime = time();
+----		end
+--	else
+--		-- Ok, so this is the first time this person+Spell combination has been called.
+--		-- Normally will be a "Prepare to Act" kind of instruction, but could be an "Act Now" action too.
+--		print("DEBUG: Notification: First notification");
+--		self.Notification = deepcopy(notification);
+--
+--	end		
+--	
+	self.Notification = deepcopy(notification);
 	self.Notification.TimeLastApplied = time();
 	
 end
@@ -257,64 +260,91 @@ end
 
 function PvPHelperServer:SendNotifications()
 	local note = self.Notification;
-	if (note) then
-		--print("DEBUG: note.ExecutionTime ".. note.ExecutionTime.." time "..time());
+	if (note) and not xDebug then
+		
+		--print("DEBUG: note.ExecutionTime ".. note.ExecutionTime.." time "..currentTime);
 		
 		local strMessage = nil;
 		local strAppend = "";
+		local currentTime = time();
+
 		
-		if note.ExecutionTime + 11 <= time() then
-			strMessage = "VeryLateActNow";
-			executeTime = note.ExecutionTime + 11;
-		elseif note.ExecutionTime + 8 <= time() then
-			strMessage = "VeryLateActNow";
-			executeTime = note.ExecutionTime + 8;
-		elseif note.ExecutionTime + 6 <= time() then
-			strMessage = "LateActNow";
-			executeTime = note.ExecutionTime + 6;
-		elseif note.ExecutionTime + 4 <= time() then
-			strMessage = "LateActNow";
-			executeTime = note.ExecutionTime + 4;
-		elseif note.ExecutionTime + 1 <= time() then
-			print("Sent1:");
-			strMessage = "ActNow";
-			executeTime = note.ExecutionTime + 1;
-		elseif note.ExecutionTime <= time() then
-			print("Sent0:");
-			strMessage = "ActNow";
-			executeTime = note.ExecutionTime;
-		elseif note.ExecutionTime > time() then
+		if note.ExecutionTime > currentTime then
 			strMessage = "PrepareToAct";
-			--print("DEBUG:PrepareToAct:Seconds:"..note.Seconds..", time:"..note.ExecutionTime)
-			strAppend = ","..tostring(note.ExecutionTime - time());
-			executeTime = note.ExecutionTime;
-		end
-		
-		timeDiff = self.LastSentNotification.ExecutionTime - executeTime;
-		
-		if self.LastSentNotification then
-			--print("Compare "..strMessage..": "..tostring(self.LastSentNotification.SpellId).."="..note.SpellId..", "..tostring(self.LastSentNotification.SentTime).."="..executeTime..", diff:"..math.abs(self.LastSentNotification.ExecutionTime - executeTime));
+
+			print("Execution time is in the future - so prepare to act");
+			--xDebug = true;
+			print("lastMsg: Spell:"..tostring(self.LastSentNotification.SpellId).."="..note.SpellId
+			..", "..tostring(self.LastSentNotification.Message).."="..tostring(strMessage)
+			..", "..tostring(self.LastSentNotification.ExecutionTime).."="..note.ExecutionTime);	
+				
 			if not (self.LastSentNotification.To == note.To 
 				and self.LastSentNotification.SpellId == note.SpellId
 				and self.LastSentNotification.Message == strMessage
-				and math.abs(self.LastSentNotification.TimeDiff - timeDiff) < 0.5	) then
+				and math.abs(self.LastSentNotification.ExecutionTime - note.ExecutionTime) < 0.5	) then
+				-- First time we have had to Prepare - send now
+				print("PvPHelperServer DEBUG: About to send message: "..strMessage..", "..	note.SpellId..strAppend..", "..note.To);
+				strAppend = ","..tostring(note.ExecutionTime - currentTime)
+				self:SendMessage(strMessage, note.SpellId..strAppend, note.To);
+				note.Message = strMessage;
+				self.LastSentNotification = deepcopy(note);
+			end		
+		else
+		print("Execution time Current Or Past. LastSent:"..currentTime - self.LastSentNotification.ExecutionTime);
+			local sendTime = nil;
+			if self.LastSentNotification.ExecutionTime + 13 <= currentTime then
+					-- Bah, don't bother, if they've not responded in 11sec, they wont!
+				print("Bah - dont't bother");
+			elseif self.LastSentNotification.ExecutionTime + 11 <= currentTime then
+				print("5");
+				strMessage = "VeryLateActNow";
+				sendTime = self.LastSentNotification.ExecutionTime + 11
+			elseif self.LastSentNotification.ExecutionTime + 8 <= currentTime then
+				print("4");
+				strMessage = "VeryLateActNow";
+				sendTime = self.LastSentNotification.ExecutionTime + 8;
+			elseif self.LastSentNotification.ExecutionTime + 6 <= currentTime then
+				print("3");
+				strMessage = "LateActNow";
+				sendTime = self.LastSentNotification.ExecutionTime + 6;
+			elseif self.LastSentNotification.ExecutionTime + 4 <= currentTime then
+				print("2");
+				strMessage = "LateActNow";
+				sendTime = self.LastSentNotification.ExecutionTime + 4;
+			elseif self.LastSentNotification.ExecutionTime + 1 <= currentTime then
+				print("1");
+				strMessage = "ActNow";
+				sendTime = self.LastSentNotification.ExecutionTime;
+			elseif self.LastSentNotification.ExecutionTime <= currentTime then
+				print("0");
+				strMessage = "ActNow";
+				sendTime = self.LastSentNotification.ExecutionTime;
+			end	
+			if strMessage then
 
-				if strMessage then
+			print("lastMsg: Spell:"..tostring(self.LastSentNotification.SpellId).."="..note.SpellId
+			..", "..tostring(self.LastSentNotification.Message).."="..tostring(strMessage)
+			..", "..tostring(self.LastSentNotification.ExecutionTime).."="..sendTime);	
+
+				
+				if not (self.LastSentNotification.To == note.To 
+					and self.LastSentNotification.SpellId == note.SpellId
+					and self.LastSentNotification.Message == strMessage
+					and math.abs(self.LastSentNotification.ExecutionTime - sendTime) < 0.5	) then
+				-- First time we have had to Prepare - send now
 					print("PvPHelperServer DEBUG: About to send message: "..strMessage..", "..	note.SpellId..", "..note.To);
-					self:SendMessage(strMessage, note.SpellId..strAppend, note.To);
+					self:SendMessage(strMessage, note.SpellId, note.To);
 					note.Message = strMessage;
-					note.SentTime = time();
-					note.TimeDiff = timeDiff;
 					self.LastSentNotification = deepcopy(note);
 				end
-		
 			end
+			
 		end
 	end
 end
 
 function PvPHelperServer:MessageReceived(strPrefix, strMessage, strType, strSender)
-	print("DEBUG: PvpHelperServer - Message Received "..strMessage..", "..tostring(strType)..", "..strSender);
+	--print("DEBUG: PvpHelperServer - Message Received "..strMessage..", "..tostring(strType)..", "..strSender);
 	
 	-- TODO: REmove this comment - it could be that we're pinging back message received comments every time!!!
 	-- We have commented this out to try to fix a bug with 2x CCTypes messages causing errors.
@@ -419,7 +449,7 @@ print("DEBUG: Raid roster update");
 		for i=1,GetNumRaidMembers() do
 			name,_,_,_,_,class,_,online,_,_,_,role = GetRaidRosterInfo(i);
 			local objFriend = Friend.new({GUID=UnitGUID(name), Name=name, CCTypes=CCTypeList.new()})
-				print("DEBUG: PvpHelperServer RAID_ROSTER_UPDATE- adding " + name + " to friendlist");
+				print("DEBUG: PvpHelperServer RAID_ROSTER_UPDATE- adding " .. tostring(name) .." to friendlist");
 
 			objFriendList:Add(objFriend)
 		end
@@ -471,14 +501,20 @@ print("DEBUG: Raid roster update");
 	elseif event == "ZONE_CHANGED_NEW_AREA" then
 		print("Event ZONE_CHANGED_NEW_AREA fired")
 		objPvPServer:Initialize();
+    
 	elseif event == "CHAT_MSG_ADDON" then
---	print("PvPHelperServer-MESSAGE RECEIVED with stamp "..timestamp.." - "..tostring(Event))
+	--print("PvPHelperServer-MESSAGE RECEIVED with stamp "..timestamp.." - "..tostring(Event))
 		if (timestamp == "PvPHelperServer") then
 			objPvPServer:MessageReceived(tostring(timestamp), tostring(Event), tostring(hideCaster), tostring(sourceGUID))
 --	else
 --		print("PvpHelperServer ERROR Message Received with stamp "..timestamp)
 		end
 
+	elseif event == "PLAYER_REGEN_DISABLED" then
+    objPvPServer.InCombat = true;
+		
+	elseif event == "PLAYER_REGEN_ENABLED" then
+    objPvPServer.InCombat = false;
 		
 	elseif event=="COMBAT_LOG_EVENT_UNFILTERED" then
 		if Event=="SPELL_AURA_REMOVED" then
@@ -503,6 +539,12 @@ function RegisterMainFrameEvents(self)
 
 	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
 	PvPHelperServer_MainFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+  
+  
+  PvPHelperServer_MainFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+  PvPHelperServer_MainFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+  
+  
 	--PvPHelperServer_MainFrame:RegisterEvent("PLAYER_LOGIN")
 	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 	PvPHelperServer_MainFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -565,7 +607,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 					..", "..tostring(objFriendSpell._IsCooldown)
 					..", "..tostring(objFriendSpell:IsAvailable())
 					..", "..tostring(objFriendSpell.Duration)
-					..", "..tostring(objSpell.DRLevel)
+					..", "..tostring(objSpell:DRLevel())
 					
 					);
 					end

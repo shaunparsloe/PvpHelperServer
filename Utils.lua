@@ -21,14 +21,14 @@ function deepcopy(o, seen)
   return no
 end
 
-function table.shallow_copy(t)
-  local t2 = {}
-  for k,v in pairs(t) do
-    t2[k] = v
-  end
-  return t2
-end
-
+--function table.shallow_copy(t)
+--  local t2 = {}
+--  for k,v in pairs(t) do
+--    t2[k] = v
+--  end
+--  return t2
+--end
+--
 
 --local clock = os.clock
 function sleep(numSecToSleep)  -- seconds
@@ -79,6 +79,8 @@ function TESTAssert(expected, actual, description)
   local blnRetval = false
   local join = ": "
   local calledfrom = debug.getinfo(2).name;
+  local currentline = debug.getinfo(2).currentline;
+  local linedefined = debug.getinfo(2).linedefined;
   if (actual == expected) then
     blnRetval = true;
   else
@@ -86,7 +88,8 @@ function TESTAssert(expected, actual, description)
       description = ""
       join = ""
     end
-      print("[TESTERROR:"..calledfrom.."] "..description..join.."Expected value: ["..tostring(expected).."] Actual value: ["..tostring(actual).."]");
+    --print(tostring(currentline)..","..tostring(linedefined));
+    print("[TESTERROR:"..calledfrom.."("..tostring(currentline)..")] "..description..join.."Expected value: ["..tostring(expected).."] Actual value: ["..tostring(actual).."]");
   end
   return blnRetval
 end

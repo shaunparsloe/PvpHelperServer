@@ -19,7 +19,7 @@ function FoeDRList:Add(objDR)
   table.insert(self, objDR)
   self.DRTypeReverseLookupTable[tostring(objDR.DRType)] = table.getn(self)
   --print("Inserted DRTYPE ["..objDR.DRType.."]");
-  self:ListDRs();
+  --self:ListDRs();
 end
 
 -- Reverse lookup the DRType.  Return found FoeDR
@@ -37,9 +37,10 @@ function FoeDRList:ListDRs()
   local strJoin = "";
   local strResult = "";
   for i,drtype in ipairs(self) do
-    strResult = strResult..strJoin.."("..tostring(drtype.DRType)..") Level "..tostring(drtype.DRLevel).." expires in "..tostring(drtype.DRExpires).."sec\n  "
+    strDR = "("..tostring(drtype.DRType)..") Level "..tostring(drtype:DRLevel()).." expires in "..tostring(drtype:DRExpires()).."sec\n  "
     strJoin = ",";
-    print("1DRs "..strResult)
+    print(tostring(i)..") DRTable "..strDR)
+    strResult = strResult..strJoin..strDR
   end  
   print("DRs "..strResult)
   return strResult;
