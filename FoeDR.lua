@@ -5,63 +5,58 @@ FoeDR={};
 FoeDR.__index = FoeDR; -- failed table lookups on the instances should fallback to the class table, to get methods
 
 CONSTANTS = {}
-CONSTANTS.DRTIME = 18;  -- DR lasts for 18 seconds
+CONSTANTS.DRTIME = 18;	-- DR lasts for 18 seconds
 
 function FoeDR.new(strDRType)
-  -- the new instance
-  local self = setmetatable(
-    {
-    DRType = strDRType,
-    DRLevel = 0,
-    _TimeLastApplied = time(),
-    _Expires = time(),
-    DRExpires = 0
-    }, FoeDR)  
-   -- return the instance
-  return self
+	-- the new instance
+	local self = setmetatable(
+		{
+		DRType = strDRType,
+		_DRLevel = 0,
+		_TimeLastApplied = time(),
+		_Expires = time(),
+		_DRExpires = 0
+		}, FoeDR)	
+	 -- return the instance
+	return self
 end
 
 function FoeDR:ApplyDR(duration)
-	if self.DRLevel < 3 then
-    	self.DRLevel = self.DRLevel + 1;
-    	self._TimeLastApplied = time();
-    	self._Expires = time() + CONSTANTS.DRTIME + duration;
+	if self._DRLevel < 3 then
+			self._DRLevel = self._DRLevel + 1;
+			self._TimeLastApplied = time();
+			self._Expires = time() + CONSTANTS.DRTIME + duration;
 	end
-  --print(self.DRType.." DRLevel is now " ..DRLevel)
+	--print(self.DRType.." _DRLevel is now " .._DRLevel)
 end
 
 function FoeDR:ResetDR()
 	--print("DEBUG:FoeDR:ResetDR()")
 	self._TimeLastApplied = time();
 	self._Expires = time() + CONSTANTS.DRTIME;
-  --print("DEBUG:FoeDR:ResetDR()"..self.DRType.." DRLevel is now " ..self.DRLevel)
+	--print("DEBUG:FoeDR:ResetDR()"..self.DRType.." _DRLevel is now " ..self._DRLevel)
 end
 
-function FoeDR:Recalculate()
-	self:CalculateDRLevel();
-	self:CalculateExpiry();
---	print("DEBUG:FoeDR:Recalculate(), DRType".. self.DRType ..", DRLevel:"..tostring(self.DRLevel)..", Expiry:"..tostring(self.DRExpires));
-end
 
-function FoeDR:CalculateDRLevel()
+function FoeDR:DRLevel()
 --	print("DEBUG:FoeDR:_CalculateDR(), "..tostring(self._Expires));
-  if (time() >= self._Expires) then
-      self.DRLevel = 0;
-  end
-  return self.DRLevel;
+	if (time() >= self._Expires) then
+			self._DRLevel = 0;
+	end
+	return self._DRLevel;
 end
 
 
-function FoeDR:CalculateExpiry()
-  local clocktime = time();
-  local expSeconds = 0
-  if self._Expires <= clocktime then 
-    expSeconds = 0;
-  else
-    expSeconds = self._Expires - clocktime;
-  end
-  self.DRExpires = expSeconds;
-  return self.DRExpires;
+function FoeDR:DRExpires()
+	local clocktime = time();
+	local expSeconds = 0
+	if self._Expires <= clocktime then 
+		expSeconds = 0;
+	else
+		expSeconds = self._Expires - clocktime;
+	end
+	self._DRExpires = expSeconds;
+	return self._DRExpires;
 end
 
 -- ****************************************************

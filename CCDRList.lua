@@ -13,8 +13,13 @@ function CCDRList.new()
 end
 -- Build up a reverse lookup table so we can have an index for the CCName
 function CCDRList:Add(objDR)
-  table.insert(self, objDR)
-  self.CCNameReverseLookupTable[tostring(objDR.CCName)] = table.getn(self)
+	table.insert(self, objDR)
+	
+	--reads the program input line by line, storing all lines in an array: 
+	local size = table.getn(self);
+	self.CCNameReverseLookupTable[tostring(objDR.CCName)] = table.getn(self)  
+    -- Also build the Lookup Table when building the List
+
 end
 
 -- Reverse lookup the Spell Name.  Return found spell.

@@ -38,9 +38,11 @@ function Foe:CCAuraApplied(objCCSpell)
 	else
 		--print("Did Not Find FOECCTYPE = "..objCCSpell.SpellId..", Adding it!");
 		objCC = deepcopy(GVAR.AllCCTypes:LookupSpellId(objCCSpell.SpellId));
-		objCC:CastSpell();
-		local objCCDR = deepcopy(objCC)
-    	self.CCTypeList:Add(objCCDR)
+    if (objCC) then
+      objCC:CastSpell();
+      local objCCDR = deepcopy(objCC)
+      self.CCTypeList:Add(objCCDR)
+    end
 	end
 	
   	return objDR;
@@ -51,11 +53,16 @@ function Foe:CCAuraRemoved(objCCSpell)
   local objDR = self.DRList:LookupDRType(objCCSpell.DRType);
   if objDR then
     objDR:ResetDR();
+  else
+    print("ERROR: Cannot find DRType '"..objCCSpell.DRType.."' in list of DR's");
   end
 
   local objCC = self.CCTypeList:LookupSpellId(objCCSpell.SpellId);
   if objCC then
+    --print("Removing active cc");
     objCC:RemoveActiveCC();
+  else
+      print("ERROR: Cannot find spellId "..objCCSpell.SpellId.." in list of Active CC's");
   end
 
 end

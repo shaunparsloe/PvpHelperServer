@@ -14,9 +14,9 @@ function FriendList:Add(friend)
 	local foundId = self.GUIDLookupTable[tostring(friend.GUID)];
 	if foundId then
     	self[foundId] = friend;
-    	print("DEBUG: PvpHelperServer FriendList:Add- UPDATING " .. friend.Name .. " in friendlist");
+    	--print("DEBUG: PvpHelperServer FriendList:Add- UPDATING " .. friend.Name .. " in friendlist");
   	else
-	    print("DEBUG: PvpHelperServer FriendList:Add- adding " .. friend.Name .. " to friendlist");	
+	    --print("DEBUG: PvpHelperServer FriendList:Add- adding " .. friend.Name .. " to friendlist");	
 	    table.insert(friend.ContainedInLists, self)
 	    table.insert(self, friend);
     end
@@ -81,7 +81,7 @@ function FriendList:_BuildFriendCCTypesList()
 	      self.FriendCCTypesList:Add(deepcopy(friendCCType));
 	    end
 	else
-		print("No CC Types list for "..friend.Name);
+		print("ERROR:Friendlist: No CC Types list for "..friend.Name);
     end
   end
 
