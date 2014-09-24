@@ -595,7 +595,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
               local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
               local maxSeconds = totalSeconds + math.max(nextCast, maxActiveCC);
 
-              --print("Found spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
+              print("Found spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
 
               local note = Notification.new( 
                 {To = objCC.Friend,
@@ -603,7 +603,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
                 Seconds = maxSeconds});
 
               if not objFriendAssigned:LookupGUID(objCC.Friend.GUID) then
-                --print("Added note for spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name);
+                print("Added note for spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name);
                 objPvPServer.NotificationList:Add(note);
               end
               

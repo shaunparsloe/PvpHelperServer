@@ -15,8 +15,8 @@ function NotificationList:Add(objNotification)
   -- Check if we've already got this guid in our list
   objNote = self:LookupGUID(objNotification.To.GUID);
   if objNote then
-    --print("Already got a notification for "..objNotification.To.Name);
-    objNote.Update(objNotification);
+    print("Already got a notification for "..objNotification.To.Name);
+    objNote:Update(deepcopy(objNotification));
   else
     --print("Adding notification for "..objNotification.To.Name);
     objNote =  deepcopy(objNotification);

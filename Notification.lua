@@ -26,7 +26,7 @@ end
 function Notification:Update (options)
 
   self.To = options.To
-  self.ToSpellId = options.SpellId
+  self.ToSpellId = options.ToSpellId
   self.ToTime = options.ToTime
   self.ToMessage = options.Message
 
@@ -43,9 +43,9 @@ function Notification:Send()
     self.ToMessage = "ActNow";
   end
 
- print("lastMsg: Spell:"..tostring(self.SentSpellId).."="..self.ToSpellId
+ print("lastMsg: Spell:"..tostring(self.SentSpellId).."="..tostring(self.ToSpellId)
   ..", "..tostring(self.SentTime).."="..tostring(self.ToTime)
-  ..", "..tostring(self.SentMessage).."="..self.ToMessage);	
+  ..", "..tostring(self.SentMessage).."="..tostring(self.ToMessage));	
 
   if self.ToTime > currentTime then
     print("Execution time is in the future - so prepare to act");
