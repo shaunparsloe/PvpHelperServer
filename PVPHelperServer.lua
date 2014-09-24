@@ -25,7 +25,7 @@ function PvPHelperServer.new (options)
 	
 	self.NotificationList= NotificationList.new();
 
-	self.Message = deepcopy(Message.new());
+	self.Message = Message.new();
 	self.Message.ReceivePrefix = "PvPHelperServer";	
 
 	self.FriendList = FriendList.new();
@@ -52,9 +52,9 @@ end
 
 function PvPHelperServer:Initialize()
 	--print("DEBUG: PvpHelperServer - Initializing");
-	self.MessageLog = {}
-	self.MessageLog.Sent = {}
-	self.MessageLog.Received= {}
+	--self.MessageLog = {}
+	--self.MessageLog.Sent = {}
+	--self.MessageLog.Received= {}
 
 	self.NotificationList= NotificationList.new();
 
@@ -284,7 +284,7 @@ function PvPHelperServer:OLDSendNotifications()
 			end		
 		else
 		print("Execution time Current Or Past. LastSent:"..currentTime - self.LastSentNotification.ExecutionTime);
-			local sendTime = nil;
+			local mustSend = nil;
 			if self.LastSentNotification.ExecutionTime + 13 <= currentTime then
 					-- Bah, don't bother, if they've not responded in 11sec, they wont!
 				print("Bah - dont't bother");
@@ -292,18 +292,22 @@ function PvPHelperServer:OLDSendNotifications()
 				print("5");
 				strMessage = "VeryLateActNow";
 				sendTime = self.LastSentNotification.ExecutionTime + 11
+        mustSend = true;
 			elseif self.LastSentNotification.ExecutionTime + 8 <= currentTime then
 				print("4");
 				strMessage = "VeryLateActNow";
 				sendTime = self.LastSentNotification.ExecutionTime + 8;
+        mustSend = true;
 			elseif self.LastSentNotification.ExecutionTime + 6 <= currentTime then
 				print("3");
 				strMessage = "LateActNow";
 				sendTime = self.LastSentNotification.ExecutionTime + 6;
+        mustSend = true;
 			elseif self.LastSentNotification.ExecutionTime + 4 <= currentTime then
 				print("2");
 				strMessage = "LateActNow";
 				sendTime = self.LastSentNotification.ExecutionTime + 4;
+        mustSend = true;
 			elseif self.LastSentNotification.ExecutionTime + 1 <= currentTime then
 				print("1");
 				strMessage = "ActNow";
@@ -358,7 +362,7 @@ end
 
 function PvPHelperServer:SendMessage(strMessage, strTarget, strTo)
 	local objSentMessage = self.Message:SendMessagePrefixed("PvPHelperClient", strMessage, strTarget, strTo);
-  table.insert(self.MessageLog.Sent, deepcopy(objSentMessage));
+  --table.insert(self.MessageLog.Sent, deepcopy(objSentMessage));
 end
 
 function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
@@ -600,11 +604,11 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 
               local note = Notification.new( 
                 {To = objCC.Friend,
-                SpellId = objSpell.SpellId,
+                SpellId = objCC.Spell.SpellId,
                 Seconds = maxSeconds});
 
               if not objFriendAssigned:LookupGUID(objCC.Friend.GUID) then
-                print("Added note for spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name);
+                --print("Added note for spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name);
                 objPvPServer.NotificationList:Add(note);
               end
               
@@ -616,7 +620,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
             end
             --end
           else
-            print("Ignore as for some reason we have a blank CC Record");
+            --print("Ignore as for some reason we have a blank CC Record");
           end
         end
 
