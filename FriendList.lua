@@ -80,8 +80,8 @@ function FriendList:_BuildFriendCCTypesList()
 	        })
 	      self.FriendCCTypesList:Add(deepcopy(friendCCType));
 	    end
-	else
-		print("ERROR:Friendlist: No CC Types list for "..friend.Name);
+    else
+      --print("ERROR:Friendlist: No CC Types list for "..friend.Name);
     end
   end
 

@@ -20,11 +20,12 @@ FriendCCType.lua
 FriendCCTypeList.lua
 FriendList.lua
 Notification.lua
+NotificationList.lua
+OrderedCCList.lua
 
 PVPH_Server.lua
 SlashCommands.lua
 UI.lua
-Utils.lua
 
 PVPHelperServer.lua
 
