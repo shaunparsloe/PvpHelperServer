@@ -3,7 +3,7 @@ local filepath = "\\Games\\World of Warcraft\\Interface\\AddOns\\PVPHelperServer
 local libfilepath = "\\Games\\World of Warcraft\\Interface\\AddOns\\PVPHelperLibrary\\"
 dofile(libfilepath.."Test_MockWoWFunctions.lua")
 dofile(libfilepath.."Message.lua")
-dofile(filepath.."Utils.lua")
+dofile(libfilepath.."Utils.lua")
 dofile(libfilepath.."Localization.lua")
 dofile(filepath.."CCDR.lua")
 dofile(filepath.."CCDRList.lua")
@@ -18,13 +18,15 @@ dofile(filepath.."FriendList.lua")
 dofile(filepath.."FriendCCType.lua")
 dofile(filepath.."FriendCCTypeList.lua")
 dofile(filepath.."Notification.lua")
+dofile(filepath.."NotificationList.lua")
+dofile(filepath.."OrderedCCList.lua")	
 dofile(filepath.."UI.lua")	
 dofile(filepath.."SlashCommands.lua")
 
 dofile(filepath.."PvPHelperServer.lua")
 
 local _time = 1000;
-function time()
+function GetTime()
   return _time;
 end
 
@@ -241,7 +243,7 @@ function TEST_FOE()
   TESTAssert(22, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
   -- For our testing, pretend 13 seconds have passed, so Expires should now be 5sec
-  objFoe.DRList[1]._Expires = time() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   TESTAssert(5, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
   -- When cc is applied again, the Expiry time should be reset to 18 and DRLevel should be 2 now
@@ -251,7 +253,7 @@ function TEST_FOE()
   TESTAssert(22, math.round(objFoe.DRList[1]:DRExpires()), "2.objFoeDRList[1]:DRExpires()");
   
     -- For our testing, pretend 13 seconds have passed, so Expires should now be 5sec
-  objFoe.DRList[1]._Expires = time() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   TESTAssert(5, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
 -- Now we see that the CC is removed from the Foe, this should reset the DR timer to 18sec.
@@ -263,7 +265,7 @@ function TEST_FOE()
 
 
     -- For our testing, pretend 20 seconds have passed, so Expires should now be -2sec in the past
-  objFoe.DRList[1]._Expires = time() - 2 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetTime() - 2 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   -- Once the time has elapsed, we should see the DRLevel drop to 0 
   -- and the Expires time set to 0
   TESTAssert(0, objFoe.DRList[1]:DRLevel(), "4.objFoeDRList[1]:DRLevel()");
@@ -498,23 +500,23 @@ function TEST_AURA_APPLIED()
   -- Assert that we have the correct friend
   TESTAssert("FriendlyWarrior", objFoundFriend.Name, "2.objFoundFriend.Name")
   -- Lookup those items
-  local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
+  local objSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
   local objFoundFoe = objFoeList:LookupGUID(destGUID);
 
   -- Assert that we have the correct spell
-  TESTAssert(107570, objFriendSpell.SpellId, "objFriendSpell.SpellId")
-  TESTAssert("Storm Bolt (talent)", objFriendSpell.CCName, "objFriendSpell.CCName")
-  TESTAssert("CS", objFriendSpell.DRType, "objFriendSpell.DRType")
+  TESTAssert(107570, objSpell.SpellId, "objSpell.SpellId")
+  TESTAssert("Storm Bolt (talent)", objSpell.CCName, "objSpell.CCName")
+  TESTAssert("CS", objSpell.DRType, "objSpell.DRType")
   
   -- Assert first that this spell should not be on cooldown
-  TESTAssert(true, objFriendSpell:IsAvailable(), "IsAvailable")
-  TESTAssert(0, math.round(objFriendSpell:CooldownExpires()), "CooldownExpires")
+  TESTAssert(true, objSpell:IsAvailable(), "IsAvailable")
+  TESTAssert(0, math.round(objSpell:CooldownExpires()), "CooldownExpires")
   
   -- Assert that we have the correct Foe
   TESTAssert("BadPersonB", objFoundFoe.Name, "3.objFoundFoe.Name")
   
   -- There should be no DR on the Foe at this time
-  TESTAssert(nil, objFoundFoe.DRList:LookupDRType(objFriendSpell.DRType), "3.LookupDRType")
+  TESTAssert(nil, objFoundFoe.DRList:LookupDRType(objSpell.DRType), "3.LookupDRType")
   
 --ACT 
 --local pvpHelperServer = PvPHelperServer.new();
@@ -529,14 +531,14 @@ function TEST_AURA_APPLIED()
  
 --ASSERT  
   -- Assert that after the aura is applied, the spell must not be available, and that the cooldown should expire in 30 sec (Storm bolt has 30sec cooldown)
-  TESTAssert(false, objFriendSpell:IsAvailable(), "IsAvailable")
-  TESTAssert(30, objFriendSpell:CooldownExpires(), "CooldownExpires")
+  TESTAssert(false, objSpell:IsAvailable(), "IsAvailable")
+  TESTAssert(30, objSpell:CooldownExpires(), "CooldownExpires")
 --ASSERT  
   -- Now there should be a DR on that Foe
-  local founddrtype = objFoundFoe.DRList:LookupDRType(objFriendSpell.DRType);
+  local founddrtype = objFoundFoe.DRList:LookupDRType(objSpell.DRType);
   TESTAssert("CS", founddrtype.DRType, "4.LookupDRType.DRType")
   TESTAssert(1, founddrtype:DRLevel(), "4.LookupDRType.DRLevel")
-  TESTAssert(18+objFriendSpell.Duration, math.round(founddrtype:DRExpires()), "4.LookupDRType.DRExpires")
+  TESTAssert(18+objSpell.Duration, math.round(founddrtype:DRExpires()), "4.LookupDRType.DRExpires")
   
   
 end
@@ -560,7 +562,7 @@ function TEST_AURA_REMOVED()
 
 
   local objFoundFriend = objFriendList:LookupGUID(sourceGUID);
-  local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
+  local objSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
   local objFoundFoe = objFoeList:LookupGUID(destGUID);
  
     
@@ -574,11 +576,11 @@ function TEST_AURA_REMOVED()
 
   -- Check that the start position is correct
   -- Assert that after the aura is applied, the spell must not be available, and that the cooldown should expire in 30 sec (Storm bolt has 30sec cooldown)
-  TESTAssert(false, objFriendSpell:IsAvailable(), "IsAvailable")
-  TESTAssert(30, objFriendSpell:CooldownExpires(), "CooldownExpires")
+  TESTAssert(false, objSpell:IsAvailable(), "IsAvailable")
+  TESTAssert(30, objSpell:CooldownExpires(), "CooldownExpires")
 --ASSERT  
   -- Now there should be a DR on that Foe
-  local founddrtype = objFoundFoe.DRList:LookupDRType(objFriendSpell.DRType);
+  local founddrtype = objFoundFoe.DRList:LookupDRType(objSpell.DRType);
   TESTAssert("CS", founddrtype.DRType, "1.LookupDRType.DRType")
   TESTAssert(1, founddrtype:DRLevel(), "1.LookupDRType.DRLevel")
   TESTAssert(22, math.round(founddrtype:DRExpires()), "1.LookupDRType.DRExpires")
@@ -767,9 +769,9 @@ function TEST_GETNEXTSPELL_CHECKS()
 -- AVAILABILITY CHECKS
   -- Place Storm bolt  on cooldown
     local objFoundFriend = objPvPHelperServer.FriendList:LookupGUID("WARR123");
-    local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(107570);
-    objFriendSpell._IsCooldown = true;
-    objFriendSpell._CooldownExpires = time() + 30;
+    local objSpell = objFoundFriend.CCTypes:LookupSpellId(107570);
+    objSpell._IsCooldown = true;
+    objSpell._CooldownExpires = GetTime() + 30;
   -- Assert should be charge + shockwave  
   nextSpell = objPvPHelperServer:NextCCSpell(CCGUID1);
   TESTAssert(46968, nextSpell.SpellId, "4.Storm Bolt is not available")
@@ -780,17 +782,25 @@ end
 function TEST_EVENT_CHATMESSAGE()
   -- Arrange
   objPvPHelperServer = PvPHelperServer.new()
+  
+    local objFriendList = TEST_CreateTestFriendList()
+  
+  objPvPHelperServer.FoeList = objFoeList;
+  objPvPHelperServer.FriendList = objFriendList;
+
+
   objPvPHelperServer.Message.Header = "BLANK";
-    PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "CHAT_MSG_ADDON", "PvPHelper", "1234.Message Body String", "WHISPER", "MrTeamMember")   -- 0030 = Set CC Target
+    PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "CHAT_MSG_ADDON", "PvPHelper", "Testing.Message Body String", "WHISPER", "WARR123")   -- 0030 = Set CC Target
   --Assert 
   TESTAssert("BLANK", objPvPHelperServer.Message.Header, "Must only process PvPHelperServer messages")
 
   
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "CHAT_MSG_ADDON", "PvPHelperServer", "1234.Message Body String", "WHISPER", "MrTeamMember")   -- 0030 = Set CC Target
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "CHAT_MSG_ADDON", "PvPHelperServer", "Testing.Message Body String", "WHISPER", "WARR123")   -- 0030 = Set CC Target
+  
   --Assert 
-  TESTAssert("1234", objPvPHelperServer.Message.Header, "MessageReceived - Header")
+  TESTAssert("Testing", objPvPHelperServer.Message.Header, "MessageReceived - Header")
   TESTAssert("Message Body String", objPvPHelperServer.Message.Body, "MessageReceived - Body")
-  TESTAssert("MrTeamMember", objPvPHelperServer.Message.From, "MessageReceived - From")
+  TESTAssert("WARR123", objPvPHelperServer.Message.From, "MessageReceived - From")
   
 end
 
@@ -825,8 +835,12 @@ function TEST_EVENT_SPELL_AURA_REMOVED()
 --ARRANGE  
   objPvPHelperServer = PvPHelperServer.new()
   local objFoeList = FoeList.new()
+  objFoeList:Add(Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"}))
+
   local objFriendList = TEST_CreateTestFriendList()
   
+  objPvPHelperServer.FoeList = objFoeList;
+  objPvPHelperServer.FriendList = objFriendList;
   
 -- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
   PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_APPLIED", hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605, "Dominate Mind")   -- 605 = Dominate Mind
@@ -838,7 +852,7 @@ function TEST_EVENT_SPELL_AURA_REMOVED()
   TESTAssert(1, table.maxn(objFoe.DRList), "Should have 1 DR on this foe")  
   TESTAssert("dommind", objFoe.DRList[1].DRType, "Type of DR is DomMind - DRType")
   TESTAssert(1, objFoe.DRList[1]:DRLevel(), "Applied once, so DRLevel =1");
-  TESTAssert(18, math.round(objFoe.DRList[1]:DRExpires()), "New application so Expires in 18sec");
+  TESTAssert(18+6, math.round(objFoe.DRList[1]:DRExpires()), "New application so Expires in 18sec + Dominate mind duration of 6sec");
 
 -- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
   PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_REMOVED", hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605, "Dominate Mind")   -- 605 = Dominate Mind
@@ -854,16 +868,20 @@ function TEST_EVENT_SPELL_AURA_REMOVED()
 end
 
 function TEST_EVENT_SPELL_AURA_APPLIED()
---ARRANGE  
-  objPvPHelperServer = PvPHelperServer.new()
-  local objFoeList = FoeList.new()
-  local objFriendList = TEST_CreateTestFriendList()
   
   -- Set up the PvPServer and populate the team list with standard friend list
-  objPvPHelperServer = PvPH_Server.new({FriendList = objFriendList, FoeList = objFoeList})
+  objPvPHelperServer = PvPHelperServer.new()
   
-  -- CHeck that we have an empty FoeList initially
-  TESTAssert(0, table.maxn(objPvPHelperServer.FoeList), "No foes initially")  
+  local objFoeList = FoeList.new()
+  objFoeList:Add(Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"}))
+
+  local objFriendList = TEST_CreateTestFriendList()
+  
+  objPvPHelperServer.FoeList = objFoeList;
+  objPvPHelperServer.FriendList = objFriendList;
+  
+  -- CHeck that we have the one in FoeList initially
+  TESTAssert(1, table.maxn(objPvPHelperServer.FoeList), "No foes initially")  
 
 -- ACT
 -- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
@@ -875,7 +893,7 @@ function TEST_EVENT_SPELL_AURA_APPLIED()
   TESTAssert(1, table.maxn(objFoe.DRList), "Should have 1 DR on this foe")  
   TESTAssert("dommind", objFoe.DRList[1].DRType, "Type of DR is DomMind - DRType")
   TESTAssert(1, objFoe.DRList[1]:DRLevel(), "Applied once, so DRLevel =1");
-  TESTAssert(18, math.round(objFoe.DRList[1]:DRExpires()), "New application so Expires in 18sec");
+  TESTAssert(18+6, math.round(objFoe.DRList[1]:DRExpires()), "New application so Expires in 18sec + DominateMind duration of 6sec");
 
 end
 
@@ -896,12 +914,11 @@ function TEST_MESSAGERECEIVED_PLAYERSPELLS()
   TESTAssert("1776,2094", tostring(objPlayer.CCTypes:ListSpellIds()), "Player set up with standard spells initially")  
 
   -- Act
-  objPvPHelperServer:MessageReceived("PvPHelper", "0020:1776,2094,113506", "WHISPER", "FriendlyRogue")   -- 0020 = Myspells are
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "MySpells.1776,2094,113506", "WHISPER", "FriendlyRogue")   -- 0020 = Myspells are
  
   -- Assert that when this message is received, it must change the spells for that player
   --Assert
-  TESTAssert("PvPHelper", objPvPHelperServer.Message.Prefix, "MessageReceived - Prefix")
-  TESTAssert("0020", objPvPHelperServer.Message.Header, "MessageReceived - Header")
+  TESTAssert("MySpells", objPvPHelperServer.Message.Header, "MessageReceived - Header")
   TESTAssert("1776,2094,113506", objPvPHelperServer.Message.Body, "MessageReceived - Body")
   TESTAssert("FriendlyRogue", objPvPHelperServer.Message.From, "MessageReceived - From")
 
@@ -917,50 +934,96 @@ end
 function TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
   -- Arrange
   objPvPHelperServer = PvPHelperServer.new()
+  local objFoeList = FoeList.new()
+  objFoeList:Add(Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"}))
+
+  local objFriendList = TEST_CreateTestFriendList()
   objPvPHelperServer.FriendList = objFriendList;
   objPvPHelperServer.FoeList = objFoeList;
 
-  objCCSpell = objPvPHelperServer:NextCCSpell("FOEABCGUID")  -- What is the next CC Spell ?  Get the client to tell us that it is on CD and then check the next.
   
-  TESTAssert("605", tostring(objCCSpell.SpellId), "Initial CC Spell before cooldowns")  
-  TESTAssert("PRIEST123", tostring(objCCSpell.FriendGUID), "Friend GUID of Initial CC Spell before cooldowns")  
-  TESTAssert("FriendlyPriest", tostring(objCCSpell.FriendName), "Friend name of Initial CC Spell before cooldowns")  
+  objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells("FOEGUID123");  
+  
+  TESTAssert("5246", tostring(objOrderedCCSpells[1].Spell.SpellId), "Initial CC Spell before cooldowns should be Intimidating Shout")  
+  TESTAssert("WARR123", tostring(objOrderedCCSpells[1].Friend.GUID), "Friend GUID of Initial CC Spell before cooldowns")  
 
+  TESTAssert("2094", tostring(objOrderedCCSpells[2].Spell.SpellId), "Then Blind")  
+  TESTAssert("ROGUE123", tostring(objOrderedCCSpells[2].Friend.GUID), "Rogue should CC next")  
+
+  TESTAssert(0, objOrderedCCSpells[1].Spell:CooldownExpires(), "Not on cooldown") 
 
   -- Act
-  objPvPHelperServer:MessageReceived("PvPHelper", "0080:605", "WHISPER", "FriendlyPriest")   -- 0080 = Cooldown
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.5246", "WHISPER", "FriendlyWarrior")   -- SpellCoolDown = Cooldown
 
-  objCCSpell = objPvPHelperServer:NextCCSpell("FOEABCGUID")  -- What is the next CC Spell ?  Get the client to 
-  TESTAssert("107570", tostring(objCCSpell.SpellId), "Next CC Spell after cooldowns")  
-  TESTAssert("WARR123", tostring(objCCSpell.FriendGUID), "Friend GUID of Initial CC Spell after cooldowns")  
-  TESTAssert("FriendlyWarrior", tostring(objCCSpell.FriendName), "Friend name of Initial CC Spell after cooldowns")  
+  -- Now get the new list of ordered spells.
+  objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells("FOEGUID123");
+
+  for i, cc in ipairs(objOrderedCCSpells) do
+    if cc.Spell.SpellId == 5246 then
+      --print("Found "..cc.Spell.SpellId);
+      TESTAssert(90, cc.Spell:CooldownExpires(), "Should be on cooldown") 
+      break;
+    end
+  end
+
+  TESTAssert("2094", tostring(objOrderedCCSpells[1].Spell.SpellId), "Now Blind should be first in list")  
+  TESTAssert("ROGUE123", tostring(objOrderedCCSpells[1].Friend.GUID), "Rogue should CC next")  
+
 
 end
 
 function TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
   -- Arrange
   objPvPHelperServer = PvPHelperServer.new()
-  objPvPHelperServer.FriendList = TEST_CreateTestFriendList();
-  objPvPHelperServer.FoeList = FoeList.new();
+  local objFoeList = FoeList.new()
+  objFoeList:Add(Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"}))
 
-  -- Check that it's arranged correctly
-  local objCCSpell = objPvPHelperServer:NextCCSpell("FOEABCGUID")
-  TESTAssert("605", tostring(objCCSpell.SpellId), "CC Spell ID before any notification of Cooldown")  
+  local objFriendList = TEST_CreateTestFriendList()
+  objPvPHelperServer.FriendList = objFriendList;
+  objPvPHelperServer.FoeList = objFoeList;
 
-  objPvPHelperServer:MessageReceived("PvPHelper", "0080:605", "WHISPER", "FriendlyPriest")   -- 0080 = Cooldown
-
-  -- Check that after 605 is notified to be on cooldown then 107570 must be up next
-  objCCSpell = objPvPHelperServer:NextCCSpell("FOEABCGUID")
-  TESTAssert("107570", tostring(objCCSpell.SpellId), "Next CC Spell after cooldowns")  
+  objWarr = objPvPHelperServer.FriendList:LookupGUID("WARR123");
+  objSpell = objWarr.CCTypes:LookupSpellId(5246)
+  objSpell:CastSpell();
   
-  -- Act
-  objPvPHelperServer:MessageReceived("PvPHelper", "0090:605", "WHISPER", "FriendlyPriest")   -- 0090 = Off Cooldown
+  -- Get the list of Ordered Spells before we act
+  objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells("FOEGUID123");  
+  
+  -- Check that Intimidating shout is on Cooldown
+  for i, cc in ipairs(objOrderedCCSpells) do
+    if cc.Spell.SpellId == 5246 then
+      --print("Found "..cc.Spell.SpellId);
+      TESTAssert(90, cc.Spell:CooldownExpires(), "Should be on cooldown") 
+      break;
+    end
+  end
 
-  -- Assert that after notification that it's OFF cooldown, 605 must be the spell to cast again
-  objCCSpell = objPvPHelperServer:NextCCSpell("FOEABCGUID")
-  TESTAssert("605", tostring(objCCSpell.SpellId), "CC Spell ID after notification of OFF Cooldown")  
-  TESTAssert("PRIEST123", tostring(objCCSpell.FriendGUID), "Friend GUID after notification of OFF Cooldown")  
-  TESTAssert("FriendlyPriest", tostring(objCCSpell.FriendName), "Friend name after notification of OFF Cooldown")  
+ -- Check that Blind should be 1st if intimidating shout is on Cooldown
+  TESTAssert("2094", tostring(objOrderedCCSpells[1].Spell.SpellId), "Blind should be 1st if Intimidating shout is on Cooldown")  
+  TESTAssert("ROGUE123", tostring(objOrderedCCSpells[1].Friend.GUID), "Rogue should CC next")  
+   
+
+  -- Act
+  -- We are now told that Intimidating shout is off cooldown
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellOffCooldown.5246", "WHISPER", "FriendlyWarrior")
+
+  -- Now get the new list of ordered spells.
+  objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells("FOEGUID123");
+
+  for i, cc in ipairs(objOrderedCCSpells) do
+    if cc.Spell.SpellId == 5246 then
+      --print("Found "..cc.Spell.SpellId);
+      TESTAssert(0, cc.Spell:CooldownExpires(), "Intimidating shout Should now be OFF cooldown") 
+      break;
+    end
+  end
+  
+  TESTAssert("5246", tostring(objOrderedCCSpells[1].Spell.SpellId), "Intimidating Shout should now be 1st")  
+  TESTAssert("WARR123", tostring(objOrderedCCSpells[1].Friend.GUID), "Cast by Warrior")  
+
+  TESTAssert("2094", tostring(objOrderedCCSpells[2].Spell.SpellId), "Then Blind should be 2nd")  
+  TESTAssert("ROGUE123", tostring(objOrderedCCSpells[2].Friend.GUID), "Rogue should CC next")  
+
 
 end
 
@@ -1032,12 +1095,13 @@ function TEST_EVENT_PARTY_MEMBERS_CHANGED()
   objPvPHelperServer = PvPHelperServer.new()
   
   -- CHeck that we have an empty FoeList initially
-  TESTAssert(0, table.maxn(objPvPHelperServer.FriendList), "No friends initially")  
+  TESTAssert(1, table.maxn(objPvPHelperServer.FriendList), "One friend initially")  
 
 -- ACT
 -- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
 
   -- Set debug value for UnitInRaid to return True for "player"
+
   DEBUG.GetRaidRosterInfo = {}
   DEBUG.GetRaidRosterInfo[1] = {}
   DEBUG.GetRaidRosterInfo[1].name = "FriendlyPriest"
@@ -1052,9 +1116,22 @@ function TEST_EVENT_PARTY_MEMBERS_CHANGED()
   DEBUG.GetRaidRosterInfo[1].role = "DPS"
   DEBUG.GetRaidRosterInfo[1].isML = false;
 
+  DEBUG.GetRaidRosterInfo[2] = {}
+  DEBUG.GetRaidRosterInfo[2].name = "FriendlyWarrior"
+  DEBUG.GetRaidRosterInfo[2].rank = 1
+  DEBUG.GetRaidRosterInfo[2].subgroup = 1
+  DEBUG.GetRaidRosterInfo[2].level = 90
+  DEBUG.GetRaidRosterInfo[2].class  = "Warrior"
+  DEBUG.GetRaidRosterInfo[2].fileName = "UnknownFileName"
+  DEBUG.GetRaidRosterInfo[2].zone = "UnknownZone"
+  DEBUG.GetRaidRosterInfo[2].online = true
+  DEBUG.GetRaidRosterInfo[2].isDead = false
+  DEBUG.GetRaidRosterInfo[2].role = "DPS"
+  DEBUG.GetRaidRosterInfo[2].isML = false;
+
   -- Set the number of raid members that should be reported
   -- and that the player is in a raid
-  DEBUG.GetNumRaidMembers = 2   
+  DEBUG.GetNumRaidMembers = 0   
   DEBUG.UnitInRaid = {};
   DEBUG.UnitInRaid["player"]= {};
   DEBUG.UnitInRaid["player"].retval = false;
@@ -1074,8 +1151,10 @@ function TEST_EVENT_PARTY_MEMBERS_CHANGED()
   DEBUG.UnitGUID["party1"] = "PRIEST123";
   DEBUG.UnitGUID["party2"] = "WARR123";
 
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "PARTY_MEMBERS_CHANGED", "PvPHelper", Event, hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, foeGUID, foeName, destFlags, destRaidFlags, spellId)
-  
+
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "PARTY_MEMBERS_CHANGED", "PvPHelper", Event, hideCaster, "WARRIOR123", "FriendlyWarrior", sourceFlags, sourceRaidFlags, foeGUID, foeName, destFlags, destRaidFlags, spellId)
+
+
 --ASSERT  
   TESTAssert(2, table.maxn(objPvPHelperServer.FriendList), "Should have found 2 Friends")  
   local objFriend = objPvPHelperServer.FriendList[1];
@@ -1096,45 +1175,50 @@ function TEST_ONUPDATE_NOTIFYCCNOW()
   -- E.g. CC1 now, CC2 in <cc1.cooldown> seconds
   -- Then when the CC action changes, it must notify the clients.
   
-  local objPvPHelperServer = PvPHelperServer.new()
+  objPvPHelperServer = PvPHelperServer.new()
   local objFoeList = FoeList.new()
+  local objFoe = Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"});
+  objFoeList:Add(objFoe)
+
   local objFriendList = TEST_CreateTestFriendList()
   objPvPHelperServer.FriendList = objFriendList;
   objPvPHelperServer.FoeList = objFoeList;
 
-  UIWidgets.CCButton[1].Foe = Foe.new({GUID="GUID1234", Name="Karen", Class="WARLOCK"})
-
-  nextSpell, followingSpell = objPvPHelperServer:NextCCSpell(CCGUID1);
-  TESTAssert(605, nextSpell.SpellId, "1.NextSpell SpellId")
-  TESTAssert("PRIEST123", nextSpell.FriendGUID, "1.NextSpell FriendGUID")  
-  TESTAssert(107570, followingSpell.SpellId, "1.followingSpell SpellId")
-  TESTAssert("WARR123", followingSpell.FriendGUID, "1.followingSpell FriendGUID")  
+  local btnCCTarget1 = UIWidgets.CCButton[1];
+  
+  btnCCTarget1.Foe = deepcopy(objFoe);
+  
+  objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells(objFoe.GUID);  
+  
+  TESTAssert("5246", tostring(objOrderedCCSpells[1].Spell.SpellId), "Initial CC Spell before cooldowns should be Intimidating Shout")  
+  TESTAssert("WARR123", tostring(objOrderedCCSpells[1].Friend.GUID), "Friend GUID of Initial CC Spell before cooldowns")  
+  
+  local nextSpell;
+  local followingSpell;
+  
+  if (objOrderedCCSpells) then
+    nextSpell =       objOrderedCCSpells[1];
+    followingSpell =  objOrderedCCSpells[2];
+  else
+    print("Got no CC spells");
+  end
+			
+  
+  TESTAssert(5246, nextSpell.Spell.SpellId, "1.NextSpell SpellId")
+  TESTAssert("WARR123", nextSpell.Friend.GUID, "1.NextSpell FriendGUID")  
+  TESTAssert(2094, followingSpell.Spell.SpellId, "1.followingSpell SpellId")
+  TESTAssert("ROGUE123", followingSpell.Friend.GUID, "1.followingSpell FriendGUID")  
+  
+  
+  objPvPHelperServer.MessageLog.Sent = {};
   -- Tell the Friend to Cast CC - then wait for the aura to apply
   --pvpServer:Apply_Aura(nextSpell.FriendGUID, nextSpell.SpellId, CCGUID1);
   local elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
 
-  -- Assert that the messages were sent
-  
-  TESTAssert("PvPHelper", objPvPHelperServer.MessageLog.Sent["DoActionNow"].Prefix, "ONUPDATE NOTIFY - Sent Prefix")
-  TESTAssert("0060", objPvPHelperServer.MessageLog.Sent["DoActionNow"].Header, "ONUPDATE NOTIFY - Sent DoActionNow - Header")
-  TESTAssert("0060:605", objPvPHelperServer.MessageLog.Sent["DoActionNow"].Body, "ONUPDATE NOTIFY - Sent DoActionNow - Body")
-  TESTAssert("FriendlyPriest", objPvPHelperServer.MessageLog.Sent["DoActionNow"].To, "ONUPDATE NOTIFY - Sent DoActionNow - To")
-  
-  TESTAssert("PvPHelper", objPvPHelperServer.MessageLog.Sent["PrepareToAct"].Prefix, "ONUPDATE NOTIFY - Sent Prefix")
-  TESTAssert("0050", objPvPHelperServer.MessageLog.Sent["PrepareToAct"].Header, "ONUPDATE NOTIFY - Sent PrepareToAct - Header")
-  TESTAssert("0050:107570", objPvPHelperServer.MessageLog.Sent["PrepareToAct"].Body, "ONUPDATE NOTIFY - Sent PrepareToAct - Body")
-  TESTAssert("FriendlyWarrior", objPvPHelperServer.MessageLog.Sent["PrepareToAct"].To, "ONUPDATE NOTIFY - Sent PrepareToAct - To")
-  
-  local timeStamp = objPvPHelperServer.MessageLog.Sent["DoActionNow"].Time
-    
-  objPvPHelperServer.MessageLog.Sent["DoActionNow"].Time = timeStamp + 2
-  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
-  TESTAssert(timeStamp + 2, objPvPHelperServer.MessageLog.Sent["DoActionNow"].Time, "ONUPDATE NOTIFY - Dont send notification in under 5 sec")
-
-  objPvPHelperServer.MessageLog.Sent["DoActionNow"].Time = timeStamp - 6
-  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
-  TESTAssert(time(), objPvPHelperServer.MessageLog.Sent["DoActionNow"].Time, "ONUPDATE NOTIFY - Resend notification, last sent 5sec ago")
+  -- Assert that the messages were sent 
+  -- ActNow to the Warrior, Prepare To Act to the Rogue
+  TESTAssert(2, table.getn(objPvPHelperServer.MessageLog.Sent), "Should send msg to Warrior to act now, rouge to prepare");
 
 
 end
@@ -1163,15 +1247,15 @@ TEST_EVENT_CHATMESSAGE()
 TEST_EVENT_PLAYER_REGEN_DISABLED()
 TEST_EVENT_PLAYER_REGEN_ENABLED()
 TEST_EVENT_RAID_ROSTER_UPDATE()
---TEST_EVENT_SPELL_AURA_REMOVED()
---TEST_EVENT_SPELL_AURA_APPLIED()
---TEST_MESSAGERECEIVED_PLAYERSPELLS()
---TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
---TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
---TEST_EVENT_RAID_ROSTER_UPDATE()
---TEST_EVENT_PARTY_MEMBERS_CHANGED()
---TEST_ONUPDATE_NOTIFYCCNOW()
---print("\n--END TESTS--")
+TEST_EVENT_SPELL_AURA_REMOVED()
+TEST_EVENT_SPELL_AURA_APPLIED()
+TEST_MESSAGERECEIVED_PLAYERSPELLS()
+TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
+TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
+TEST_EVENT_RAID_ROSTER_UPDATE()
+TEST_EVENT_PARTY_MEMBERS_CHANGED()
+TEST_ONUPDATE_NOTIFYCCNOW()
+
 print("--END TESTS--\n")
 
 

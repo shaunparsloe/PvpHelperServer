@@ -22,8 +22,7 @@ function PvPHelperServer.new (options)
 	local self = setmetatable({}, PvPHelperServer)
 	
 	
-	self.Notification=nil;
-	self.LastSentNotification = Notification.new({SpellId=0,To=0,Seconds=0});
+	self.NotificationList= NotificationList.new();
 
 	self.Message = deepcopy(Message.new());
 	self.Message.ReceivePrefix = "PvPHelperServer";	
@@ -56,8 +55,7 @@ function PvPHelperServer:Initialize()
 	self.MessageLog.Sent = {}
 	self.MessageLog.Received= {}
 
-	self.Notification=nil;
-	self.LastSentNotification = Notification.new({Seconds=0});
+	self.NotificationList= NotificationList.new();
 
 		local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
 		local objFriendList = FriendList.new()
@@ -81,7 +79,7 @@ function PvPHelperServer:ResetFriendsAndFoes(options)
 	self.GlobalCCTypesList = CCTypeList:LoadAllCCTypes();
 	self.GlobalCCDRList = CCDRList.LoadAllDRSpells();
 	
-		for i, k in pairs(self.FriendList) do
+	for i, k in pairs(self.FriendList) do
 		if (k.Name) then
 				--print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
 				self:SendMessage("WhatSpellsDoYouHave", 1234556, k.Name);
@@ -142,8 +140,7 @@ end
 
 
 function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
-	local OrderedCCSpells = {};
-
+	local objOrderedCCSpells = OrderedCCList.new()
 	
 	if (CCTarget1GUID) then
 		--print("DEBUG: looking for FOE GUID "..CCTarget1GUID)
@@ -183,19 +180,14 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 					end
 			
 					if objFriendSpell then
-						table.insert(OrderedCCSpells, 
+						objOrderedCCSpells:Add(
 						{
 						Friend=objFoundFriend,
 						Foe=objFoundFoe, 
-						FreindSpell=objFriendSpell, 
-						FriendName=objFoundFriend.Name, 
-						FriendSpellName=objFriendSpell.CCName, 
-						CCIsAvail=isAvail,
-					CDExpires=cdExpires,
-						Duration=objFriendSpell.Duration,
+						Spell=objFriendSpell, 
+            CDExpires=cdExpires,
 						DRLevel=drLevel,
-						DRXpires=drExpires,
-						Weighting=objFriendSpell.Weighting
+						DRXpires=drExpires
 						});
 		
 					else
@@ -213,12 +205,12 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 	end		
 
 	-- Order by Cooldown, DR Remaining, Spell Weighting		
-	table.sort(OrderedCCSpells, 
+	table.sort(objOrderedCCSpells, 
 				function(x,y)
 					local retval = false;
 					if (x.CDExpires <= y.CDExpires) then
 						if (x.DRXpires <= y.DRXpires) then
-							if (x.Weighting <= y.Weighting) then
+							if (x.Spell.Weighting <= y.Spell.Weighting) then
 								retval = true;
 							end
 						end
@@ -227,7 +219,7 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 				end
 		);
 	
-	return OrderedCCSpells;
+	return objOrderedCCSpells;
 	
 end
 
@@ -241,7 +233,7 @@ function PvPHelperServer:SetNotification(notification)
 ----		if (notification.Seconds == 0 and self.LastSentNotification.Seconds > 0) then
 ----			print("DEBUG: Notification: Updating notification");
 ----			self.Notification.Seconds = 0;
-----			self.Notification.ExecutionTime = time();
+----			self.Notification.ExecutionTime = GetTime();
 ----		end
 --	else
 --		-- Ok, so this is the first time this person+Spell combination has been called.
@@ -252,12 +244,17 @@ function PvPHelperServer:SetNotification(notification)
 --	end		
 --	
 	self.Notification = deepcopy(notification);
-	self.Notification.TimeLastApplied = time();
+	self.Notification.TimeLastApplied = GetTime();
 	
 end
 
-
 function PvPHelperServer:SendNotifications()
+  for i,note in ipairs(self.NotificationList) do
+    note:Send();
+  end
+end
+
+function PvPHelperServer:OLDSendNotifications()
 	local note = self.Notification;
 	if (note) and not xDebug then
 		
@@ -265,7 +262,7 @@ function PvPHelperServer:SendNotifications()
 		
 		local strMessage = nil;
 		local strAppend = "";
-		local currentTime = time();
+		local currentTime = GetTime();
 
 		
 		if note.ExecutionTime > currentTime then
@@ -353,15 +350,18 @@ function PvPHelperServer:MessageReceived(strPrefix, strMessage, strType, strSend
 		self:SetFriendSpells(self.Message.Body, self.Message.From)
 	elseif (self.Message.Header)=="SpellCoolDown" then -- 0080 = ThisSpellIsOnCooldown
 		self:SetFriendSpellOnCooldown(self.Message.Body, self.Message.From)
---	elseif (self.Message.Header)=="ThisSpellIsOffCooldown" then -- 0090 = ThisSpellIsOffCooldown
---		self:SetFriendSpellOffCooldown(self.Message.Body, self.Message.From)
+	elseif (self.Message.Header)=="SpellOffCooldown" then -- 0090 = SpellOffCooldown
+		self:SetFriendSpellOffCooldown(self.Message.Body, self.Message.From)
+	elseif (self.Message.Header)=="Testing" then
+    -- Ignore for testing only
+  else
+    print("PvpHelperServer - Unknown Message Received ("..self.Message.Header..") "..strMessage..", "..tostring(strType)..", "..strSender);
 	end
 end
 
 function PvPHelperServer:SendMessage(strMessage, strTarget, strTo)
 	local objSentMessage = self.Message:SendMessagePrefixed("PvPHelperClient", strMessage, strTarget, strTo);
---	self.MessageLog.Sent[strMessage] = Message:Clone(objSentMessage)
- -- self.MessageLog.Sent[strMessage] = Message:Clone(objSentMessage)
+  table.insert(self.MessageLog.Sent, deepcopy(objSentMessage));
 end
 
 function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
@@ -374,9 +374,9 @@ function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
 	end
 end
 
-function PvPHelperServer:SetFriendSpellOnCooldown(PaddedstrSpellId, strFrom)
-	-- print(" PvPHelperServer:SetFriendSpellOnCooldown "..PaddedstrSpellId..", "..strFrom..")")
-	strSpellId = strsub(PaddedstrSpellId, 7);
+function PvPHelperServer:SetFriendSpellOnCooldown(strSpellId, strFrom)
+	--print(" PvPHelperServer:SetFriendSpellOnCooldown "..strSpellId..", "..strFrom..")")
+	--strSpellId = strsub(PaddedstrSpellId, 7);
 		local objFoundFriend = self.FriendList:LookupName(strFrom);
 		if objFoundFriend then
 			local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(strSpellId);
@@ -392,18 +392,18 @@ function PvPHelperServer:SetFriendSpellOnCooldown(PaddedstrSpellId, strFrom)
 end
 
 function PvPHelperServer:SetFriendSpellOffCooldown(strSpellId, strFrom)
-	--print("DEBUG: PvPHelperServer:SetFriendSpellOFFCooldown("..strSpellId..", "..strFrom..")")
-	local objFoundFriend = self.FriendList:LookupName(strFrom);
+	--print(" PvPHelperServer:SetFriendSpellOffCooldown "..strSpellId..", "..strFrom..")")
+		local objFoundFriend = self.FriendList:LookupName(strFrom);
 		if objFoundFriend then
 			local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(strSpellId);
-				if objFriendSpell then
-					--print("DEBUG: putting spell "..tostring(objFriendSpell.SpellId).." OFF cooldown")--
-					objFriendSpell:Reset()	-- Mark this as cast to set timeout and cooldown
-				else
-					--print("DEBUG: SetFriendSpellOnCooldown cannot find friendspell : "..strSpellId)
-				end
+			if objFriendSpell then
+				--print("putting spell "..tostring(objFriendSpell.SpellId).." off cooldown")--
+				objFriendSpell:Reset()	-- Mark this as reset
+			else
+				print("SetFriendSpellOnCooldown cannot find friendspell : "..strSpellId)
+			end
 		else
-				--print("DEBUG: SetFriendSpellOnCooldown cannot find friend : "..strFrom)
+			print("SetFriendSpellOnCooldown cannot find friend : "..strFrom)
 		end
 end
 
@@ -413,7 +413,7 @@ function PVPHelperServer_OnEvent(self, event, ...)
 		param16, param17, param18, param19, param20, param21, param22, param23=...
 	local frame = self;
 
-	objPvPServer = frame.PvPHelperServer
+	local objPvPServer = frame.PvPHelperServer
 	
 	
 	if event == "PLAYER_LOGIN" then
@@ -442,13 +442,13 @@ function PVPHelperServer_OnEvent(self, event, ...)
 --		--objFriendList:Add(objFriend)
 --		local objFoeList = FoeList.new()
 --		objPvPServer = PvPHelperServer.ResetFriendsAndFoes({FriendList = objFriendList, FoeList = objFoeList})
-print("DEBUG: Raid roster update");
+--print("DEBUG: Raid roster update");
 		local objFriendList = FriendList.new()
 		
 		for i=1,GetNumRaidMembers() do
 			name,_,_,_,_,class,_,online,_,_,_,role = GetRaidRosterInfo(i);
 			local objFriend = Friend.new({GUID=UnitGUID(name), Name=name, CCTypes=CCTypeList.new()})
-				print("DEBUG: PvpHelperServer RAID_ROSTER_UPDATE- adding " .. tostring(name) .." to friendlist");
+				--print("DEBUG: PvpHelperServer RAID_ROSTER_UPDATE- adding " .. tostring(name) .." to friendlist");
 
 			objFriendList:Add(objFriend)
 		end
@@ -477,7 +477,7 @@ print("DEBUG: Raid roster update");
 			guid = UnitGUID(unittowatch);
 			
 			local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
-							print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " + name + " to friendlist");
+			--print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. name .. " to friendlist");
 
 			objFriendList:Add(objFriend)
 		end
@@ -559,6 +559,7 @@ end
 	
 -- Functions Section
 function PVPHelperServer_OnUpdate(frame, elapsed)
+--print ("on update called");
 
 	frame.TimeSinceLastUpdate = frame.TimeSinceLastUpdate + elapsed; 	
 
@@ -571,51 +572,78 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 	
 	--frame.PVPHelperServer_MessageFrame.AddMessage("TESTING");
 	frame.MessageFrame:Clear();
-	local objPvPServer
-	objPvPServer = frame.PvPHelperServer;
+	local objPvPServer = frame.PvPHelperServer;
 	
 	
 	local btnCCTarget1 = UIWidgets.CCButton[1];
 	if (btnCCTarget1) then
 		if (btnCCTarget1.Foe) then
-			local allSpells = objPvPServer:OrderedCCSpells(btnCCTarget1.Foe.GUID);
-			frame.MessageFrame:Clear();
-			frame.MessageFrame:AddMessage("CDExpires, DRExpires, SPELL NAME, IsCD, IsAvail, Duration, DRLevel");
-			if (allSpells) then
-				local objFirstSpell = allSpells[1];
-				local objFoe = objFirstSpell.Foe;
-				local objSpell = objFirstSpell.FreindSpell;
-				local nextCast = math.max(objFirstSpell.DRXpires, objFirstSpell.CDExpires);
-				local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
+			local objOrderedCCSpells = objPvPServer:OrderedCCSpells(btnCCTarget1.Foe.GUID);
+			--frame.MessageFrame:Clear();
+			--frame.MessageFrame:AddMessage("CDExpires, DRExpires, SPELL NAME, IsCD, IsAvail, Duration, DRLevel");
+			if (objOrderedCCSpells) then
+        
+        -- Now loop through all of my Friendslist and find the next spell for each  
+        objAssigned = FriendList.new();
+        for i, objCC in pairs(objOrderedCCSpells) do
+          
+          if (objCC.Friend) then
+             
+            if not objAssigned:LookupGUID(objCC.Friend.GUID) then
+              -- Not assigned yet
+              objAssigned:Add(Friend.new({GUID=objCC.Friend.GUID}));
+              print("Found spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name)
+              
+              local nextCast = math.max(objCC.DRXpires, objCC.CDExpires);
+              local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
+
+              local note = Notification.new( 
+                {To = objCC.Friend,
+                SpellId = objSpell.SpellId,
+                Seconds = math.max(nextCast, maxActiveCC)});
+            
+              objPvPServer.NotificationList:Add(note);
+              
+            end
+          else
+            print("Ignore as for some reason we have a blank CC Record");
+          end
+        end
+
+              
+--				local objFirstSpell = objOrderedCCSpells[1];
+--				local objFoe = objFirstSpell.Foe;
+--				local objSpell = objFirstSpell.FriendSpell;
+--				local nextCast = math.max(objFirstSpell.DRXpires, objFirstSpell.CDExpires);
 				--print("DEBUG:PVPHelperServer_OnUpdate: Must tell "..objFirstSpell.FriendName.." to cast "..objSpell.CCName.."("..tostring(objSpell.SpellId)..") in " ..tostring(math.max(nextCast+maxActiveCC)).."sec ("..nextCast.."/"..maxActiveCC..")");
-				local note = Notification.new( {To = objFirstSpell.FriendName,
-						SpellId = objSpell.SpellId,
-						Seconds = math.max(nextCast, maxActiveCC), 
-						Message = ""});
-				objPvPServer:SetNotification(note);
-				
-					for i, objSpell in ipairs(allSpells) do
-						objFoe = objSpell.Foe;
-					objFriendSpell = objSpell.FreindSpell;
-					nextCast = math.max(objSpell.DRXpires, objSpell.CDExpires);
-					maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
-					frame.MessageFrame:AddMessage(
-					tostring(objSpell.CDExpires)
-					..", "..tostring(objSpell.DRXpires)
-					..", "..tostring(objFriendSpell.CCName)
-					..", "..tostring(objFriendSpell._IsCooldown)
-					..", "..tostring(objFriendSpell:IsAvailable())
-					..", "..tostring(objFriendSpell.Duration)
-					..", "..tostring(objSpell:DRLevel())
-					
-					);
-					end
+--				local note = Notification.new( {To = objFirstSpell.FriendName,
+--          SpellId = objSpell.SpellId,
+--          Seconds = math.max(nextCast, maxActiveCC), 
+--          Message = ""});
+  --      objPvPServer:SetNotification(note);
+      
+--        for i, objCCSpell in ipairs(objOrderedCCSpells) do
+--         objFoe = objCCSpell.Foe;
+--          objFriendSpell = objCCSpell.FriendSpell;
+--          nextCast = math.max(objCCSpell.DRXpires, objCCSpell.CDExpires);
+--          maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
+--          frame.MessageFrame:AddMessage(
+--          tostring(objCCSpell.CDExpires)
+--          ..", "..tostring(objCCSpell.DRXpires)
+--          ..", "..tostring(objFriendSpell.CCName)
+--          ..", "..tostring(objFriendSpell._IsCooldown)
+--          ..", "..tostring(objFriendSpell:IsAvailable())
+--          ..", "..tostring(objFriendSpell.Duration)
+--          ..", "..tostring(objCCSpell.DRLevel)
+--          
+--          );
+--        end
 
 			else
 				frame.MessageFrame:AddMessage("No CC Spells available");
 			end
 		else
-	--		print("got no CCtarget1 foe");
+			print("got no CCtarget1 foe");
 		end
 	else
 		print("Got no CCTarget1 button");
@@ -639,14 +667,14 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 --					if (friendcc) then
 --						local ccdrtype = GVAR.AllCCTypes:LookupSpellId(friendcc.SpellId)
 --						local objLastMessage = frame.parent.MessageLog.Sent["DoActionNow"]
---						if (not objLastMessage) or (not (objLastMessage.To == friendcc.FriendName and tonumber(objLastMessage.Payload) == friendcc.SpellId and objLastMessage.Time + 5 >= time())) then
+--						if (not objLastMessage) or (not (objLastMessage.To == friendcc.FriendName and tonumber(objLastMessage.Payload) == friendcc.SpellId and objLastMessage.Time + 5 >= GetTime())) then
 --						-- DoActionNow
 --						frame.parent:SendMessage("DoActionNow", friendcc.SpellId, friendcc.FriendName)
 --						
 --						--SendAddonMessage( "PvPHelper", "0060:"..friendcc.SpellId, "WHISPER", friendcc.FriendName);
 ----							LastMessage.To = friendcc.FriendName;
 ----							LastMessage.SpellId = friendcc.SpellId
-----							LastMessage.SentTime = time();
+----							LastMessage.SentTime = GetTime();
 --						end
 --					else
 --						print("No available CC's")
@@ -662,15 +690,15 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 --						--	print (tostring(objLastMessage.Payload).." == "..tostring(doNextCC.SpellId))
 --						--	print (tostring(objLastMessage.Prefix).." == "..tostring(doNextCC.SpellId))
 --						--	print (tostring(objLastMessage.Body).." == "..tostring(doNextCC.SpellId))
---						--	print (tostring(objLastMessage.Time).." >= "..tostring(time()))
+--						--	print (tostring(objLastMessage.Time).." >= "..tostring(GetTime()))
 --						--end
---						if (not objLastMessage) or (not (objLastMessage.To == doNextCC.FriendName and tonumber(objLastMessage.Payload) == doNextCC.SpellId and objLastMessage.Time + 5 >= time())) then
+--						if (not objLastMessage) or (not (objLastMessage.To == doNextCC.FriendName and tonumber(objLastMessage.Payload) == doNextCC.SpellId and objLastMessage.Time + 5 >= GetTime())) then
 --							-- DoActionNow
 --							frame.parent:SendMessage("PrepareToAct", doNextCC.SpellId, doNextCC.FriendName)
 --							--SendAddonMessage( "PvPHelper", "0060:"..friendcc.SpellId, "WHISPER", friendcc.FriendName);
 ----							LastMessage.To = friendcc.FriendName;
 ----							LastMessage.SpellId = friendcc.SpellId
-----							LastMessage.SentTime = time();
+----							LastMessage.SentTime = GetTime();
 --						end
 --					else
 --						print("No doNextCC CC's")

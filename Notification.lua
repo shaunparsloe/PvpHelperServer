@@ -10,15 +10,37 @@ function Notification.new (options)
   local self = setmetatable(
   {  
     To = options.To,
-    SpellId = options.SpellId,
-    Seconds = options.Seconds, 
-    Message = options.Message,
-    TimeLastApplied = time(),
-    SentTime = 0,
-    TimeDiff = 0,
-    ExecutionTime = time() + options.Seconds
+    ToSpellId = options.SpellId,
+    ToTime = GetTime() + options.Seconds, 
+    ToMessage = options.Message,
+    SentSpellId = 0,
+    SentTime = 0, 
+    SentMessage = ""
   }
   , Notification)
   -- return the instance
   return self;
+end
+
+
+function Notification:Send()
+  
+  local currentTime = GetTime();
+  
+  if self.ToTime > currentTime then
+    self.ToMessage = "PrepareToAct";
+  else
+    self.ToMessage = "ActNow";
+  end
+
+ print("lastMsg: Spell:"..tostring(self.SentSpellId).."="..self.ToSpellId
+  ..", "..tostring(self.SentTime).."="..tostring(self.ToTime)
+  ..", "..tostring(self.SentMessage).."="..self.ToMessage);	
+
+  if self.ToTime > currentTime then
+    print("Execution time is in the future - so prepare to act");
+  else
+		print("Execution time Current Or Past.");
+  end
+
 end
