@@ -209,12 +209,10 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 	table.sort(objOrderedCCSpells, 
 				function(x,y)
 					local retval = false;
-					if (x.CDExpires <= y.CDExpires) then
-						if (x.DRXpires <= y.DRXpires) then
-							if (x.Spell.Weighting <= y.Spell.Weighting) then
-								retval = true;
-							end
-						end
+					if (math.max(x.CDExpires, x.DRXpires) <= math.max(y.CDExpires, y.DRXpires)) then
+            if (x.Spell.Weighting <= y.Spell.Weighting) then
+              retval = true;
+            end
 					end
 					return retval;
 				end
@@ -250,9 +248,7 @@ function PvPHelperServer:SetNotification(notification)
 end
 
 function PvPHelperServer:SendNotifications()
-  for i,note in ipairs(self.NotificationList) do
-    note:Send();
-  end
+  self.NotificationList:SendNotifications();
 end
 
 function PvPHelperServer:OLDSendNotifications()
@@ -584,28 +580,41 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 			--frame.MessageFrame:AddMessage("CDExpires, DRExpires, SPELL NAME, IsCD, IsAvail, Duration, DRLevel");
 			if (objOrderedCCSpells) then
         
+        local totalSeconds = 0;
         -- Now loop through all of my Friendslist and find the next spell for each  
-        objAssigned = FriendList.new();
+        objFriendAssigned = FriendList.new();
+        objDRAssigned = FoeDRList.new();
         for i, objCC in pairs(objOrderedCCSpells) do
           
           if (objCC.Friend) then
              
-            if not objAssigned:LookupGUID(objCC.Friend.GUID) then
-              -- Not assigned yet
-              objAssigned:Add(Friend.new({GUID=objCC.Friend.GUID}));
-              print("Found spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name)
+            --Find the first of each DR Type
+            if not objDRAssigned:LookupDRType(objCC.Spell.DRType) then
+              -- This is the first of that DRType
               
               local nextCast = math.max(objCC.DRXpires, objCC.CDExpires);
               local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
+              local maxSeconds = totalSeconds + math.max(nextCast, maxActiveCC);
+
+              --print("Found spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
 
               local note = Notification.new( 
                 {To = objCC.Friend,
                 SpellId = objSpell.SpellId,
-                Seconds = math.max(nextCast, maxActiveCC)});
-            
-              objPvPServer.NotificationList:Add(note);
+                Seconds = maxSeconds});
+
+              if not objFriendAssigned:LookupGUID(objCC.Friend.GUID) then
+                --print("Added note for spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name);
+                objPvPServer.NotificationList:Add(note);
+              end
               
+              totalSeconds = maxSeconds + objCC.Spell.Duration;
+            
+              objFriendAssigned:Add(Friend.new({GUID=objCC.Friend.GUID}));
+              objDRAssigned:Add(FoeDR.new(objCC.Spell.DRType));
+           
             end
+            --end
           else
             print("Ignore as for some reason we have a blank CC Record");
           end
