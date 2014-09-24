@@ -25,11 +25,6 @@ dofile(filepath.."SlashCommands.lua")
 
 dofile(filepath.."PvPHelperServer.lua")
 
-local _time = 1000;
-function GetTime()
-  return _time;
-end
-
 --CCDR
 function TEST_CCDR()
   --objCCDR = CCDR.new()
@@ -1168,6 +1163,17 @@ function TEST_EVENT_PARTY_MEMBERS_CHANGED()
 
 end
 
+
+function TEST_CLOCK()
+
+  DEBUG.SetClockSeconds = 100;
+  TESTAssert(100, GetTime(), "Set the clock correctly for debugging")  
+  
+  DEBUG.SetClockSeconds = 102;
+  TESTAssert(102, GetTime(), "Set the clock correctly for debugging")  
+
+end
+
 function TEST_ONUPDATE_NOTIFYCCNOW()
   -- Each second, the onupdate function runs.  
   -- It must keep track of which is the current and next CC action to cast
@@ -1218,6 +1224,11 @@ function TEST_ONUPDATE_NOTIFYCCNOW()
   local elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
 
+  TESTAssert(3, table.getn(objPvPHelperServer.NotificationList), "Should have notifications set up");
+  TESTAssert("FriendlyWarrior", objPvPHelperServer.NotificationList[1].To.Name, "Send to Warr first");
+  TESTAssert("ActNow", objPvPHelperServer.NotificationList[1].ToMessage, "Send to Warr to Act Now");
+  TESTAssert(5246, objPvPHelperServer.NotificationList[1].ToSpellId, "Send to Warr to Intimidating Shout");
+
   DEBUG.SetClockSeconds = 102;
   elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
@@ -1260,6 +1271,7 @@ TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
 TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
 TEST_EVENT_RAID_ROSTER_UPDATE()
 TEST_EVENT_PARTY_MEMBERS_CHANGED()
+TEST_CLOCK()
 TEST_ONUPDATE_NOTIFYCCNOW()
 
 print("--END TESTS--\n")
