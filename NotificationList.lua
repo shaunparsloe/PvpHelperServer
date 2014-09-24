@@ -15,9 +15,10 @@ function NotificationList:Add(objNotification)
   -- Check if we've already got this guid in our list
   objNote = self:LookupGUID(objNotification.To.GUID);
   if objNote then
-    print("Already got a notification for "..objNotification.To.Name);
+    --print("Already got a notification for "..objNotification.To.Name);
+    objNote.Update(objNotification);
   else
-    print("Adding notification for "..objNotification.To.Name);
+    --print("Adding notification for "..objNotification.To.Name);
     objNote =  deepcopy(objNotification);
     table.insert(self, objNote);
     -- Also build the Lookup Table when building the List
@@ -36,7 +37,11 @@ function NotificationList:LookupGUID(strGUID)
   end
 end
 
-
+function NotificationList:SendNotifications()
+  for i,note in ipairs(self) do
+    note:Send();
+  end
+end
 
 
 

@@ -1175,6 +1175,8 @@ function TEST_ONUPDATE_NOTIFYCCNOW()
   -- E.g. CC1 now, CC2 in <cc1.cooldown> seconds
   -- Then when the CC action changes, it must notify the clients.
   
+  DEBUG.SetClockSeconds = 100;
+  
   objPvPHelperServer = PvPHelperServer.new()
   local objFoeList = FoeList.new()
   local objFoe = Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"});
@@ -1214,6 +1216,10 @@ function TEST_ONUPDATE_NOTIFYCCNOW()
   -- Tell the Friend to Cast CC - then wait for the aura to apply
   --pvpServer:Apply_Aura(nextSpell.FriendGUID, nextSpell.SpellId, CCGUID1);
   local elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  DEBUG.SetClockSeconds = 102;
+  elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
 
   -- Assert that the messages were sent 
