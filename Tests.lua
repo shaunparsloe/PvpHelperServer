@@ -1182,6 +1182,8 @@ function TEST_ONUPDATE_NOTIFYCCNOW()
   -- Then when the CC action changes, it must notify the clients.
   
   DEBUG.SetClockSeconds = 100;
+  DEBUG.LogMessages = true;
+  GVAR.MessageLog = {};
   
   objPvPHelperServer = PvPHelperServer.new()
   local objFoeList = FoeList.new()
@@ -1217,25 +1219,99 @@ function TEST_ONUPDATE_NOTIFYCCNOW()
   TESTAssert(2094, followingSpell.Spell.SpellId, "1.followingSpell SpellId")
   TESTAssert("ROGUE123", followingSpell.Friend.GUID, "1.followingSpell FriendGUID")  
   
+  GVAR.MessageLog = {}
   
-  objPvPHelperServer.MessageLog.Sent = {};
   -- Tell the Friend to Cast CC - then wait for the aura to apply
   --pvpServer:Apply_Aura(nextSpell.FriendGUID, nextSpell.SpellId, CCGUID1);
   local elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
 
-  TESTAssert(3, table.getn(objPvPHelperServer.NotificationList), "Should have notifications set up");
-  TESTAssert("FriendlyWarrior", objPvPHelperServer.NotificationList[1].To.Name, "Send to Warr first");
-  TESTAssert("ActNow", objPvPHelperServer.NotificationList[1].ToMessage, "Send to Warr to Act Now");
-  TESTAssert(5246, objPvPHelperServer.NotificationList[1].ToSpellId, "Send to Warr to Intimidating Shout");
+  
+  TESTAssert(3, table.getn(GVAR.MessageLog), "Should send msg to Warrior, Rogue and Priest");
+  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr first");
+  TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
+  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
 
+  TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
+  TESTAssert("1776", GVAR.MessageLog[2].Payload2, "Send to Rogue to Gouge");
+
+  TESTAssert("FriendlyPriest", GVAR.MessageLog[3].To, "Send to Priest next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[3].Header, "Send to Priest to Prepare");
+  TESTAssert("64044", GVAR.MessageLog[3].Payload2, "Send to Priest to Horrify");
+  
+  
+  print("Ticking on +2 sec");
+  
+  GVAR.MessageLog = {}
+  
   DEBUG.SetClockSeconds = 102;
+  elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
+  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr");
+  TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
+  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+
+
+
+  print("Ticking on +2 more sec");
+  
+  GVAR.MessageLog = {}
+  
+  DEBUG.SetClockSeconds = 104;
+  elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send nothing");
+
+  print("Ticking on +2 more sec");
+  
+  GVAR.MessageLog = {}
+  
+  DEBUG.SetClockSeconds = 106;
+  elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
+  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr ");
+  TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "He is Late");
+  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+
+  print("Ticking on +2 more sec");
+  DEBUG.SetClockSeconds = 108;
+  elapsed = 4;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  print("Ticking on +2 more sec");
+  DEBUG.SetClockSeconds = 110;
+  elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  print("Ticking on +2 more sec");
+  DEBUG.SetClockSeconds = 112;
+  elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  print("Ticking on +2 more sec");
+  DEBUG.SetClockSeconds = 114;
+  elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  print("Ticking on +2 more sec");
+  DEBUG.SetClockSeconds = 116;
+  elapsed = 2;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  print("Ticking on +2 more sec");
+  DEBUG.SetClockSeconds = 118;
   elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
 
   -- Assert that the messages were sent 
   -- ActNow to the Warrior, Prepare To Act to the Rogue
-  TESTAssert(2, table.getn(objPvPHelperServer.MessageLog.Sent), "Should send msg to Warrior to act now, rouge to prepare");
 
 
 end
