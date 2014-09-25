@@ -15,7 +15,8 @@ function Notification.new (options)
     ToMessage = options.Message,
     SentSpellId = 0,
     SentTime = 0, 
-    SentMessage = ""
+    SentMessage = "",
+    OrderId = options.OrderId
   }
   , Notification)
   -- return the instance
@@ -30,7 +31,7 @@ function Notification:Update (options)
   self.ToSpellId = options.ToSpellId
   self.ToTime = options.ToTime
   self.ToMessage = options.Message
-
+  self.OrderId = options.OrderId
   return self;
 end
 
@@ -44,36 +45,39 @@ function Notification:Send()
   local mustSend = nil;
   local spellHasChanged = nil
   if not (self.SentSpellId == self.ToSpellId) then
+    print("Spell has changed");
     spellHasChanged = true
   end
 
+
   if self.ToTime > currentTime then
-    print("Execution time is in the future - so prepare to act");
+    --print("Execution time is in the future - so prepare to act");
+    if self.OrderId==1 and not self.Flags.FirstNotificationPrepare then
+      print("First Notification");
+      self.ToMessage = "PrepareToAct";
+      self.Flags.FirstNotificationPrepare  = true;
+      mustSend = true;
+    end
  
-    if spellHasChanged or ( self.ToTime - 20 <= currentTime and not self.Flags.SendMinus20) then
+    if spellHasChanged or ( self.ToTime - 40 <= currentTime and not self.Flags.Prepare) then
       print("-20-PrepareToAct");
       self.ToMessage = "PrepareToAct";
-      self.Flags.SendMinus20 = true;
+      self.Flags.Prepare = true;
       mustSend = true;
-
-    elseif spellHasChanged or ( self.ToTime - 10 <= currentTime and not self.Flags.SendMinus10) then
-      print("-10-PrepareToAct");
-      self.ToMessage = "PrepareToAct";
-      self.Flags.SendMinus10 = true;
-      mustSend = true;
-
-    elseif spellHasChanged or (self.ToTime - 4 <= currentTime and not self.Flags.SendMinus04) then
-      print("-4-PrepareToAct");
-      self.ToMessage = "PrepareToAct";
-      self.Flags.SendMinus04 = true;
-        mustSend = true;
     end
  
  
   else
     
-		print("Execution time Current Or Past.");
-    
+		--print("Execution time Current Or Past.");
+    if self.OrderId==1 and not self.Flags.FirstNotificationAct then
+      print("First Notification");
+      self.ToMessage = "ActNow";
+      self.Flags.FirstNotificationAct  = true;
+      mustSend = true;
+      self.Flags.Prepare = nil  -- Wipe out the prepare to act flag so that if we call it again next it works.
+    end
+  
     if not spellHasChanged and self.SentTime + 18 <= currentTime then
       --print("Bah, don't bother, if they've not responded by now then they wont! SentTime+13="..(self.SentTime + 13).." currentTime="..currentTime);
     elseif not spellHasChanged and self.SentTime + 14 <= currentTime and not self.Flags.SendPlus14 then
@@ -118,7 +122,7 @@ function Notification:Send()
 
   if mustSend then
     
-    print("send message to "..self.To.Name);
+    --print("send message to "..self.To.Name);
     
     self:SendMessage(self.ToMessage, self.ToSpellId, self.To.Name);
 
@@ -130,7 +134,7 @@ function Notification:Send()
     self.SentMessage = self.ToMessage      
     
   else
-    print("nothing to send");
+    --print("nothing to send");
   end
 
 end

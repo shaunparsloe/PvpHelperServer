@@ -15,7 +15,7 @@ function OrderedCCList.new()
 end
 
 function OrderedCCList:Add(options)
-    objOrderedCCItem = {
+    local objOrderedCCItem = {
       Friend=options.Friend,
       Foe = options.Foe,
       Spell = options.Spell,
@@ -35,6 +35,16 @@ function OrderedCCList:LookupFriendGuid(friendGUID)
   else
     return nil;
   end
+end
+
+function OrderedCCList:ListSpells()
+  
+  for i,v in ipairs(self) do
+    local objFriendSpell = v.Spell;
+    --math.max(x.CDExpires, x.DRXpires)
+    print("DEBUG:OrderedCCList:"..math.max(v.CDExpires, v.DRXpires)..","..v.Spell.Weighting..","..v.Spell.SpellId..".DRtype "..objFriendSpell.DRType.." DR="..v.DRXpires.." CD="..v.CDExpires.." Weight="..v.Spell.Weighting.." ("..objFriendSpell.CCName..") for "..v.Friend.Name);
+  end
+  
 end
 
 
