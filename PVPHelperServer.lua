@@ -629,7 +629,7 @@ end
 	
 -- Functions Section
 function PVPHelperServer_OnUpdate(frame, elapsed)
-print ("on update called");
+--print ("on update called");
 
 
 	frame.TimeSinceLastUpdate = frame.TimeSinceLastUpdate + elapsed; 	
@@ -646,7 +646,7 @@ print ("on update called");
 	frame.MessageFrame:Clear();
 	local objPvPServer = frame.PvPHelperServer;
 	
-  print("-- Must NOT clear out the Notification List each time!");
+  --print("-- Must NOT clear out the Notification List each time!");
   objPvPServer.NotificationList:ResetOrder();
 	
   local iNotificationOrder = 0
@@ -686,7 +686,7 @@ print ("on update called");
                 });
 
               if not objFriendAssigned:LookupGUID(objCC.Friend.GUID) then
-                print("DEBUG:OnUpdate:Add note for Spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
+                --print("DEBUG:OnUpdate:Add note for Spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
                 iNotificationOrder = iNotificationOrder + 1;
                 note.OrderId = iNotificationOrder;
                 objPvPServer.NotificationList:Add(note);
@@ -702,7 +702,7 @@ print ("on update called");
               local maxActiveCC = objCC.Foe:MaxActiveCCExpires();
               local maxSeconds = totalSeconds + math.max(nextCast, maxActiveCC);
 
-              print("IGNORE spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec as DR will be called")
+              --print("IGNORE spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec as DR will be called")
 
             end
             --end

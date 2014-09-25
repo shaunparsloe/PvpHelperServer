@@ -40,12 +40,12 @@ function Notification:Send()
   local currentTime = GetTime();
   
 
- print("lastMsg: Spell:"..tostring(self.SentSpellId).."="..tostring(self.ToSpellId)..", "..tostring(self.SentTime).."="..tostring(self.ToTime));
+ --print("lastMsg: Spell:"..tostring(self.SentSpellId).."="..tostring(self.ToSpellId)..", "..tostring(self.SentTime).."="..tostring(self.ToTime));
 
   local mustSend = nil;
   local spellHasChanged = nil
   if not (self.SentSpellId == self.ToSpellId) then
-    print("Spell has changed");
+    --print("Spell has changed");
     spellHasChanged = true
   end
 
@@ -53,14 +53,14 @@ function Notification:Send()
   if self.ToTime > currentTime then
     --print("Execution time is in the future - so prepare to act");
     if self.OrderId==1 and not self.Flags.FirstNotificationPrepare then
-      print("First Notification");
+      --print("First Notification");
       self.ToMessage = "PrepareToAct";
       self.Flags.FirstNotificationPrepare  = true;
       mustSend = true;
     end
  
     if spellHasChanged or ( self.ToTime - 40 <= currentTime and not self.Flags.Prepare) then
-      print("-20-PrepareToAct");
+      --print("-20-PrepareToAct");
       self.ToMessage = "PrepareToAct";
       self.Flags.Prepare = true;
       mustSend = true;
@@ -71,7 +71,7 @@ function Notification:Send()
     
 		--print("Execution time Current Or Past.");
     if self.OrderId==1 and not self.Flags.FirstNotificationAct then
-      print("First Notification");
+      --print("First Notification");
       self.ToMessage = "ActNow";
       self.Flags.FirstNotificationAct  = true;
       mustSend = true;
@@ -81,37 +81,37 @@ function Notification:Send()
     if not spellHasChanged and self.SentTime + 18 <= currentTime then
       --print("Bah, don't bother, if they've not responded by now then they wont! SentTime+13="..(self.SentTime + 13).." currentTime="..currentTime);
     elseif not spellHasChanged and self.SentTime + 14 <= currentTime and not self.Flags.SendPlus14 then
-      print("14-VLate");
+      --print("14-VLate");
       self.ToMessage = "VeryLateActNow";
       self.Flags.SendPlus14 = true;
       mustSend = true;
 
     elseif not spellHasChanged and self.SentTime + 11 <= currentTime and not self.Flags.SendPlus11 then
-      print("11-VLate");
+      --print("11-VLate");
       self.ToMessage = "VeryLateActNow";
       self.Flags.SendPlus11 = true;
       mustSend = true;
 
     elseif not spellHasChanged and self.SentTime + 8 <= currentTime and not self.Flags.SendPlus08 then
-      print("8-Late");
+      --print("8-Late");
       self.ToMessage = "LateActNow";
       self.Flags.SendPlus08 = true;
       mustSend = true;
 
     elseif not spellHasChanged and self.SentTime + 5 <= currentTime and not self.Flags.SendPlus05 then
-      print("5-Late");
+      --print("5-Late");
       self.ToMessage = "LateActNow";
       self.Flags.SendPlus05 = true;
       mustSend = true;
 
     elseif not spellHasChanged and self.SentTime + 2 <= currentTime and not self.Flags.SendPlus02 then
-      print("2-ActNow");
+      --print("2-ActNow");
       self.ToMessage = "ActNow";
       self.Flags.SendPlus02 = true;
       mustSend = true;
 
     elseif spellHasChanged or (self.SentTime + 0 <= currentTime and not self.Flags.SendPlus00) then
-      print("0-ActNow");
+      --print("0-ActNow");
       self.ToMessage = "ActNow";
       self.Flags.SendPlus00 = true;
         mustSend = true;
