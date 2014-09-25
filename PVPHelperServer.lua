@@ -172,12 +172,12 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 					local drLevel = 0;
 					local drExpires	= 0;
 					if (objDR) then 
-						objDR:Recalculate();
-						drExpires = objDR.DRExpires -- relative_valueof(objDR.DRExpires);
+						drExpires = objDR:DRExpires() -- relative_valueof(objDR.DRExpires);
 						drLevel = objDR:DRLevel();
 					else
 						drExpires = 0;
 					end
+          --print("DEBUG:OrderedCC:DRtype "..objFriendSpell.DRType.." expires in "..drExpires.." sec("..objFriendSpell.CCName..")");
 			
 					if objFriendSpell then
 						objOrderedCCSpells:Add(
@@ -208,19 +208,89 @@ function PvPHelperServer:OrderedCCSpells(CCTarget1GUID)
 	table.sort(objOrderedCCSpells, 
 				function(x,y)
 					local retval = false;
-					if (math.max(x.CDExpires, x.DRXpires) <= math.max(y.CDExpires, y.DRXpires)) then
-            if (x.Spell.Weighting <= y.Spell.Weighting) then
-              retval = true;
+					if (math.max(x.CDExpires, x.DRXpires) < math.max(y.CDExpires, y.DRXpires)) then
+            retval = true;
+          elseif (math.max(x.CDExpires, x.DRXpires) == math.max(y.CDExpires, y.DRXpires)) then
+            if (y.Spell.Weighting > x.Spell.Weighting) then
+                retval = true;
+            elseif(x.Spell.Weighting == y.Spell.Weighting) then
+                if(x.Spell.SpellId < y.Spell.SpellId) then
+                  retval = true;
+                end
             end
 					end
 					return retval;
 				end
 		);
+  
 	
 	return objOrderedCCSpells;
 	
 end
 
+function ShaunSort(startTable)
+  local sortedTable = {}
+  
+  
+  -- a[0] to a[n-1] is the array to sort */
+  local i,j;
+  local iMin;
+ 
+  -- advance the position through the entire array */
+  --   (could do j < n-1 because single element is also min element) */
+  for j,elem in ipairs(startTable) do
+  
+    -- find the min element in the unsorted a[j .. n-1] */
+    -- assume the min is the first element */
+    --print("List"..j);
+    iMin = j;
+    -- test against elements after j to find the smallest */
+    for i,element in ipairs(startTable) do
+      if i > j then -- Only sort the elements after j
+    --print("InnerList"..i);    
+      -- if this element is less, then it is the new minimum */  
+      if (startTable[i]) then
+        if not ChooseFirst(startTable[j], startTable[i]) then
+              -- found new minimum; remember its index */
+              iMin = i;
+       --       print("Choose last"..i);
+         --     local objNew = deepcopy(startTable[i])
+        end
+      end
+      
+      end
+    end
+    
+    if (iMin ~= j) then
+        print(tostring(iMin)..","..tostring(j));
+        --swap(a[j], a[iMin]);
+        local objNew = deepcopy(startTable[iMin])
+        startTable[iMin] = deepcopy(startTable[j])
+        startTable[j] = objNew;
+    end
+ 
+  end
+  
+  return startTable;
+end
+function ChooseFirst(x,y)
+  local retval = false;
+  if (math.max(x.CDExpires, x.DRXpires) <= math.max(y.CDExpires, y.DRXpires)) then
+  elseif (math.max(x.CDExpires, x.DRXpires) <= math.max(y.CDExpires, y.DRXpires)) then
+    if (x.Spell.Weighting < y.Spell.Weighting) then
+        retval = true;
+    elseif(x.Spell.Weighting == y.Spell.Weighting) then
+        if(x.Spell.SpellId < y.Spell.SpellId) then
+          retval = true;
+        end
+    else
+      retval = true;
+    end
+  else
+    return false;
+  end
+  return retval;
+end
 
 function PvPHelperServer:SetNotification(notification)
 
@@ -559,11 +629,13 @@ end
 	
 -- Functions Section
 function PVPHelperServer_OnUpdate(frame, elapsed)
---print ("on update called");
+print ("on update called");
+
 
 	frame.TimeSinceLastUpdate = frame.TimeSinceLastUpdate + elapsed; 	
+	--print("TimeSinceLastUpdate:"..frame.TimeSinceLastUpdate.." > Update Interval "..GVAR.UpdateInterval);
 
-	if (frame.TimeSinceLastUpdate > GVAR.UpdateInterval) then
+	if (frame.TimeSinceLastUpdate >= GVAR.UpdateInterval) then
 		--PVPHelperServerText:SetText(TimeString.." "..string.format("%.2f\n", seconds));
 	
 	--frame.PVPHelperServer_MessageFrame.AddMessage("TESTING");
@@ -574,16 +646,22 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 	frame.MessageFrame:Clear();
 	local objPvPServer = frame.PvPHelperServer;
 	
+  print("-- Must NOT clear out the Notification List each time!");
+  objPvPServer.NotificationList:ResetOrder();
 	
+  local iNotificationOrder = 0
 	local btnCCTarget1 = UIWidgets.CCButton[1];
 	if (btnCCTarget1) then
 		if (btnCCTarget1.Foe) then
 			local objOrderedCCSpells = objPvPServer:OrderedCCSpells(btnCCTarget1.Foe.GUID);
+      
+      -- DEBUG list CCspells
+      objOrderedCCSpells:ListSpells();
 			--frame.MessageFrame:Clear();
 			--frame.MessageFrame:AddMessage("CDExpires, DRExpires, SPELL NAME, IsCD, IsAvail, Duration, DRLevel");
 			if (objOrderedCCSpells) then
         
-        local totalSeconds = 0;
+        local totalSeconds = btnCCTarget1.Foe:MaxActiveCCExpires();
         -- Now loop through all of my Friendslist and find the next spell for each  
         objFriendAssigned = FriendList.new();
         objDRAssigned = FoeDRList.new();
@@ -596,18 +674,21 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
               -- This is the first of that DRType
               
               local nextCast = math.max(objCC.DRXpires, objCC.CDExpires);
-              local maxActiveCC = objFoe.CCTypeList:MaxActiveCCExpires();
+              local maxActiveCC = objCC.Foe:MaxActiveCCExpires();
               local maxSeconds = totalSeconds + math.max(nextCast, maxActiveCC);
 
-              print("Found spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
+              --print("Found spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
 
               local note = Notification.new( 
                 {To = objCC.Friend,
                 SpellId = objCC.Spell.SpellId,
-                Seconds = maxSeconds});
+                Seconds = maxSeconds
+                });
 
               if not objFriendAssigned:LookupGUID(objCC.Friend.GUID) then
-                --print("Added note for spell "..objCC.Spell.CCName.." for "..objCC.Friend.Name);
+                print("DEBUG:OnUpdate:Add note for Spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
+                iNotificationOrder = iNotificationOrder + 1;
+                note.OrderId = iNotificationOrder;
                 objPvPServer.NotificationList:Add(note);
               end
               
@@ -616,6 +697,13 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
               objFriendAssigned:Add(Friend.new({GUID=objCC.Friend.GUID}));
               objDRAssigned:Add(FoeDR.new(objCC.Spell.DRType));
            
+            else
+              local nextCast = math.max(objCC.DRXpires, objCC.CDExpires);
+              local maxActiveCC = objCC.Foe:MaxActiveCCExpires();
+              local maxSeconds = totalSeconds + math.max(nextCast, maxActiveCC);
+
+              print("IGNORE spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec as DR will be called")
+
             end
             --end
           else

@@ -17,7 +17,7 @@ function Foe.new (options)
 end
 
 function Foe:CCAuraApplied(objCCSpell)
-	--print("DEBUG:Foe:CCAuraApplied: "..objCCSpell.DRType);
+	print("DEBUG:Foe:CCAuraApplied: "..objCCSpell.DRType);
   	local objDR = self.DRList:LookupDRType(objCCSpell.DRType);
   	if objDR then
   		--print("Found DRTYPE = "..objCCSpell.DRType..", Updating it!");
@@ -50,6 +50,7 @@ end
   
 function Foe:CCAuraRemoved(objCCSpell)
   
+  print("DEBUG:Foe:CCAuraRemoved: "..objCCSpell.DRType);
   local objDR = self.DRList:LookupDRType(objCCSpell.DRType);
   if objDR then
     objDR:ResetDR();
@@ -66,6 +67,16 @@ function Foe:CCAuraRemoved(objCCSpell)
   end
 
 end
+
+function Foe:MaxActiveCCExpires()
+  local maxActiveCCExpires = 0
+  for i, objCCSpell in ipairs(self.CCTypeList) do
+    maxActiveCCExpires = math.max(objCCSpell:ActiveCCExpires(), maxActiveCCExpires);
+  end
+
+  return maxActiveCCExpires;
+end
+
 -- *********************************************************
 -- FOE class
 -- *********************************************************

@@ -1174,7 +1174,7 @@ function TEST_CLOCK()
 
 end
 
-function TEST_ONUPDATE_NOTIFYCCNOW()
+function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   -- Each second, the onupdate function runs.  
   -- It must keep track of which is the current and next CC action to cast
   -- It must notify each client of which CC action to do and when to do it
@@ -1241,115 +1241,371 @@ function TEST_ONUPDATE_NOTIFYCCNOW()
   TESTAssert("64044", GVAR.MessageLog[3].Payload2, "Send to Priest to Horrify");
   
   
-  print("Ticking on +2 sec");
-  
+  --print("Ticking on +2 sec");
   GVAR.MessageLog = {}
-  
   DEBUG.SetClockSeconds = 102;
   elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
   
-  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
+  --TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
   TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
 
 
 
-  print("Ticking on +2 more sec");
-  
+  --print("Ticking on +2 more sec");
   GVAR.MessageLog = {}
-  
   DEBUG.SetClockSeconds = 104;
   elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
 
   TESTAssert(0, table.getn(GVAR.MessageLog), "Should send nothing");
 
-  print("Ticking on +2 more sec");
-  
-  GVAR.MessageLog = {}
-  
+
+  --print("Ticking on +2 more sec");
   DEBUG.SetClockSeconds = 106;
+  GVAR.MessageLog = {}  
   elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
-
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr ");
-  TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "He is Late");
+  TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "5 sec late warning");
   TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
 
-  print("Ticking on +2 more sec");
+
+  --print("Ticking on +2 more sec");
   DEBUG.SetClockSeconds = 108;
-  elapsed = 4;
+  GVAR.MessageLog = {}  
+  elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
+  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 8 sec late");
+  TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "8 sec late warning");
+  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
 
-  print("Ticking on +2 more sec");
+
+  --print("Ticking on +2 more sec");
   DEBUG.SetClockSeconds = 110;
+  GVAR.MessageLog = {}  
   elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send nothing after 10 sec");
 
-  print("Ticking on +2 more sec");
+  
+  
+  --print("Ticking on +2 more sec");
   DEBUG.SetClockSeconds = 112;
+  GVAR.MessageLog = {}  
   elapsed = 2;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send VLate msg to Warrior");
+  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 11 sec Very late");
+  TESTAssert("VeryLateActNow", GVAR.MessageLog[1].Header, "11 sec VERY late warning");
+  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
 
-  print("Ticking on +2 more sec");
+
+  --print("Ticking on +1 sec");
+  DEBUG.SetClockSeconds = 113;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send no messages");
+
+  
+  --print("Ticking on +1 sec");
   DEBUG.SetClockSeconds = 114;
-  elapsed = 2;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send VLate msg to Warrior");
+  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 14 sec Very late");
+  TESTAssert("VeryLateActNow", GVAR.MessageLog[1].Header, "14 sec VERY late warning");
+  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
 
-  print("Ticking on +2 more sec");
+
+  --print("Ticking on +1 sec");
+  DEBUG.SetClockSeconds = 115;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send no messages");
+
+  
+  --print("Ticking on +1 sec");
   DEBUG.SetClockSeconds = 116;
-  elapsed = 2;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send no messages");
 
-  print("Ticking on +2 more sec");
-  DEBUG.SetClockSeconds = 118;
-  elapsed = 2;
+  
+  DEBUG.SetClockSeconds = 120;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send no messages");
 
-  -- Assert that the messages were sent 
-  -- ActNow to the Warrior, Prepare To Act to the Rogue
+  
+  DEBUG.SetClockSeconds = 140;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send no messages");
+  
+  
+
 
 
 end
 
 
+
+
+function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
+  
+  DEBUG.SetClockSeconds = 100;
+  DEBUG.LogMessages = true;
+  GVAR.MessageLog = {};
+  
+  objPvPHelperServer = PvPHelperServer.new()
+  local objFoeList = FoeList.new()
+  local objFoe = Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"});
+  objFoeList:Add(objFoe)
+
+  local objFriendList = TEST_CreateTestFriendList()
+  objPvPHelperServer.FriendList = objFriendList;
+  objPvPHelperServer.FoeList = objFoeList;
+
+  local btnCCTarget1 = UIWidgets.CCButton[1];
+  
+  btnCCTarget1.Foe = objFoe;
+  
+  objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells(objFoe.GUID);  
+  
+  TESTAssert("5246", tostring(objOrderedCCSpells[1].Spell.SpellId), "Initial CC Spell before cooldowns should be Intimidating Shout")  
+  TESTAssert("WARR123", tostring(objOrderedCCSpells[1].Friend.GUID), "Friend GUID of Initial CC Spell before cooldowns")  
+  
+  local nextSpell;
+  local followingSpell;
+  
+  if (objOrderedCCSpells) then
+    nextSpell =       objOrderedCCSpells[1];
+    followingSpell =  objOrderedCCSpells[2];
+  else
+    print("Got no CC spells");
+  end
+			
+  
+  TESTAssert(5246, nextSpell.Spell.SpellId, "1.NextSpell SpellId")
+  TESTAssert("WARR123", nextSpell.Friend.GUID, "1.NextSpell FriendGUID")  
+  TESTAssert(2094, followingSpell.Spell.SpellId, "1.followingSpell SpellId")
+  TESTAssert("ROGUE123", followingSpell.Friend.GUID, "1.followingSpell FriendGUID")  
+  
+  GVAR.MessageLog = {}
+  
+  -- Tell the Friend to Cast CC - then wait for the aura to apply
+  --pvpServer:Apply_Aura(nextSpell.FriendGUID, nextSpell.SpellId, CCGUID1);
+  local elapsed = 2;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+
+  
+  TESTAssert(3, table.getn(GVAR.MessageLog), "Should send msg to Warrior, Rogue and Priest");
+  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr first");
+  TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
+  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+
+  TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
+  TESTAssert("1776", GVAR.MessageLog[2].Payload2, "Send to Rogue to Gouge");
+
+  TESTAssert("FriendlyPriest", GVAR.MessageLog[3].To, "Send to Priest next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[3].Header, "Send to Priest to Prepare");
+  TESTAssert("64044", GVAR.MessageLog[3].Payload2, "Send to Priest to Horrify");
+
+
+
+  --print("First tick");
+  DEBUG.SetClockSeconds = 101;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Should send no messages");
+
+  -- First thing happens is that we see that the aura is applied
+  sourceGUID = "WARR123"
+  sourceName = "FriendlyWarrior"
+  sourceSpellId = 5246;
+  destGUID = "FOEGUID123"
+
+  objPvPHelperServer:Apply_Aura(sourceGUID, sourceSpellId, destGUID);
+  
+  -- And then we get a message that it's been cast
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown."..sourceSpellId, "WHISPER", sourceName)  
+  
+  
+  --print("Tick on 1 sec");
+  DEBUG.SetClockSeconds = 102;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  print("Time now is "..DEBUG.SetClockSeconds);  
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  -- So the warrior has now fired off Intimidating shout, we should have it active on the 
+  -- target for 8 seconds
+  
+  TESTAssert("FOEGUID123", objFoe.GUID, "This is the target");
+  TESTAssert(7, objFoe:MaxActiveCCExpires(), "Should have 7 sec active CC now that Warr has Intimidating Shouted him");
+  
+  --  btnCCTarget1.Foe = objFoe;
+
+  TESTAssert("FriendlyRogue", GVAR.MessageLog[1].To, "Send to Rogue next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Rogue to Prepare");
+--  TESTAssert("1776", GVAR.MessageLog[1].Payload, "Send to Rogue to Gouge");
+  TESTAssert("1776", GVAR.MessageLog[1].Payload2, "Send to Rogue to Gouge");
+
+print("**Removed Aura")
+  -- Now the foe uses his trinket to remove the aura
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_REMOVED", hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 5246, "Intimidating Shout")   -- 605 = Dominate Mind
+  
+  DEBUG.SetClockSeconds = 103;
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new messages - get rogue to gouge now");
+  
+  TESTAssert("FriendlyRogue", GVAR.MessageLog[1].To, "Send to Rogue next");
+  TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Rogue to Act Now");
+  TESTAssert("1776", GVAR.MessageLog[1].Payload2, "Send to Rogue to Gouge");
+
+
+  DEBUG.SetClockSeconds = 103.5;
+  print("DEBUG:Rogue gouges the wrong target!")
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.1776", "WHISPER", "FriendlyRogue")  
+  
+  
+  DEBUG.SetClockSeconds = 104;
+  
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(2, table.getn(GVAR.MessageLog), "Should send 2 new messages");
+
+  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest next");
+  TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Priest to ActNow");
+  TESTAssert("64044", GVAR.MessageLog[1].Payload2, "Send to Priest to Horrify");
+  
+  TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
+  TESTAssert("1776", GVAR.MessageLog[2].Payload2, "Send to Rogue to Gouge");
+  
+  print("Priest casts Horrify");
+  objPvPHelperServer:Apply_Aura("PRIEST123", 64044, "FOEGUID123");
+
+  DEBUG.SetClockSeconds = 105;
+  
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new messages - get priest to Silence in 8 sec");
+
+  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Priest to Prepare to Act");
+  TESTAssert("15487", GVAR.MessageLog[1].Payload2, "Send to Priest to Silence");
+
+  DEBUG.SetClockSeconds = 110;
+  
+  GVAR.MessageLog = {}  
+  elapsed = 7;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(0, table.getn(GVAR.MessageLog), "Send nothing");
+
+  
+  -- And then we get a message that it's been cast
+  --objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.64044", "WHISPER", sourceName)  
+
+  print("Priest casts Silence 1 second early");
+  objPvPHelperServer:Apply_Aura("PRIEST123", 15487, "FOEGUID123");
+  
+  DEBUG.SetClockSeconds = 111;
+  
+  GVAR.MessageLog = {}  
+  elapsed = 7;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(2, table.getn(GVAR.MessageLog), "Tell warr to charge now and Priest to prep to dominate mind");
+
+  
+  print("Warrior Charges");
+  objPvPHelperServer:Apply_Aura("WARR123", 100, "FOEGUID123");
+
+  DEBUG.SetClockSeconds = 112;
+  
+  GVAR.MessageLog = {}  
+  elapsed = 1;
+  print("Time now is "..DEBUG.SetClockSeconds);
+  PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
+  
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new messages - Warr to Shockwave");
+
+
+end
+
 --END FUNCTIONS
 -- TESTS TO PERFORM
 print("--START TESTS--\n")
-TEST_CCDR()
-TEST_CCDRLIST()
-TEST_CCTYPE()
-TEST_CCTYPELIST()
-TEST_FOEDR()
-TEST_FOEDRLIST()
-TEST_FOE()
-TEST_FOELIST()
-TEST_FRIEND()
-TEST_FRIENDLIST()
-TEST_FRIENDCCTYPE()
-TEST_FRIENDCCTYPELIST()
+--TEST_CCDR()
+--TEST_CCDRLIST()
+--TEST_CCTYPE()
+--TEST_CCTYPELIST()
+--TEST_FOEDR()
+--TEST_FOEDRLIST()
+--TEST_FOE()
+--TEST_FOELIST()
+--TEST_FRIEND()
+--TEST_FRIENDLIST()
+--TEST_FRIENDCCTYPE()
+--TEST_FRIENDCCTYPELIST()
 TEST_AURA_APPLIED()
-TEST_AURA_REMOVED()
---TEST_GETNEXTSPELL_STANDARD()
---TEST_GETNEXTSPELL_CHECKS()
-TEST_EVENT_CHATMESSAGE()
-TEST_EVENT_PLAYER_REGEN_DISABLED()
-TEST_EVENT_PLAYER_REGEN_ENABLED()
-TEST_EVENT_RAID_ROSTER_UPDATE()
-TEST_EVENT_SPELL_AURA_REMOVED()
-TEST_EVENT_SPELL_AURA_APPLIED()
-TEST_MESSAGERECEIVED_PLAYERSPELLS()
-TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
-TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
-TEST_EVENT_RAID_ROSTER_UPDATE()
-TEST_EVENT_PARTY_MEMBERS_CHANGED()
-TEST_CLOCK()
-TEST_ONUPDATE_NOTIFYCCNOW()
-
+--TEST_AURA_REMOVED()
+----TEST_GETNEXTSPELL_STANDARD()
+----TEST_GETNEXTSPELL_CHECKS()
+--TEST_EVENT_CHATMESSAGE()
+--TEST_EVENT_PLAYER_REGEN_DISABLED()
+--TEST_EVENT_PLAYER_REGEN_ENABLED()
+--TEST_EVENT_RAID_ROSTER_UPDATE()
+--TEST_EVENT_SPELL_AURA_REMOVED()
+--TEST_EVENT_SPELL_AURA_APPLIED()
+--TEST_MESSAGERECEIVED_PLAYERSPELLS()
+--TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
+--TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
+--TEST_EVENT_RAID_ROSTER_UPDATE()
+--TEST_EVENT_PARTY_MEMBERS_CHANGED()
+--TEST_CLOCK()
+--TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
+TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
 print("--END TESTS--\n")
 
 
