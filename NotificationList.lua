@@ -18,10 +18,10 @@ function NotificationList:Add(objNotification)
   end
   
   if objNote then
-    print("Already got a notification for "..objNotification.To.Name.." orderid="..objNotification.OrderId);
+    --print("Already got a notification for "..objNotification.To.Name.." orderid="..objNotification.OrderId);
     objNote:Update(deepcopy(objNotification));
   else
-    print("Adding notification for "..objNotification.To.Name.." orderid="..objNotification.OrderId);
+    --print("Adding notification for "..objNotification.To.Name.." orderid="..objNotification.OrderId);
     objNote =  deepcopy(objNotification);
     table.insert(self, objNote);
     -- Also build the Lookup Table when building the List
@@ -39,7 +39,7 @@ function NotificationList:SendNotifications()
     iCount = iCount + 1
     for j,note in ipairs(self) do
       if note.OrderId == iCount then
-        print("sending "..note.OrderId..") to "..note.To.Name);
+        --print("sending "..note.OrderId..") to "..note.To.Name);
         note:Send();
       end
     end
