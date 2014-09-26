@@ -1375,6 +1375,8 @@ end
 function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   
   DEBUG.SetClockSeconds = 100;
+  
+  -- Use these flags to log messages for debugging
   DEBUG.LogMessages = true;
   GVAR.MessageLog = {};
   

@@ -145,8 +145,5 @@ end
 
 function Notification:SendMessage(strMessage, strTarget, strTo)
 	local objSentMessage = self.Message:SendMessagePrefixed("PvPHelperClient", strMessage, strTarget, strTo);
-  if DEBUG and DEBUG.LogMessages then
-    table.insert(GVAR.MessageLog, objSentMessage);
-  end
 end
 
