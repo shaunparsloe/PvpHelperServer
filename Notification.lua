@@ -44,6 +44,7 @@ function Notification:Send()
 
   local mustSend = nil;
   local spellHasChanged = nil
+  local appendSeconds = "";
   if not (self.SentSpellId == self.ToSpellId) then
     --print("Spell has changed");
     spellHasChanged = true
@@ -51,6 +52,7 @@ function Notification:Send()
 
 
   if self.ToTime > currentTime then
+    appendSeconds = ","..(self.ToTime - currentTime);
     --print("Execution time is in the future - so prepare to act");
     if self.OrderId==1 and not self.Flags.FirstNotificationPrepare then
       --print("First Notification");
@@ -124,7 +126,7 @@ function Notification:Send()
     
     --print("send message to "..self.To.Name);
     
-    self:SendMessage(self.ToMessage, self.ToSpellId, self.To.Name);
+    self:SendMessage(self.ToMessage, self.ToSpellId..appendSeconds, self.To.Name);
 
     self.SentSpellId = self.ToSpellId 
     -- Only set the sent time the first time the message is sent.
