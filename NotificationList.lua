@@ -47,7 +47,7 @@ function NotificationList:SendNotifications()
   
 end
 
-function NotificationList:ResetOrder();
+function NotificationList:ResetOrder()
   for i,note in ipairs(self) do
     note.OrderId = 100;
   end
