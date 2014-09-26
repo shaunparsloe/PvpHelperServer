@@ -83,7 +83,7 @@ function PvPHelperServer:ResetFriendsAndFoes(options)
 	for i, k in pairs(self.FriendList) do
 		if (k.Name) then
 				--print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
-				self:SendMessage("WhatSpellsDoYouHave", 1234556, k.Name);
+				self:SendMessage("WhatSpellsDoYouHave",nil, k.Name);
 			--self:SendMessage("PrepareToAct", "64044,25", k.Name);					
 				--self:SendMessage("DummyTestMessage", nil, k.Name)
 			end
