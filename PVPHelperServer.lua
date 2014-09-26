@@ -699,7 +699,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 --						--if objLastMessage then
 --						--	print ("Compare lastmessage to donextcc")
 --						--	print (objLastMessage.To.." == "..doNextCC.FriendName)
---						--	print (tostring(objLastMessage.Text).." == "..tostring(doNextCC.SpellId))
+--						--	print (tostring(objLastMessage.CompleteText).." == "..tostring(doNextCC.SpellId))
 --						--	print (tostring(objLastMessage.Payload).." == "..tostring(doNextCC.SpellId))
 --						--	print (tostring(objLastMessage.Prefix).." == "..tostring(doNextCC.SpellId))
 --						--	print (tostring(objLastMessage.Body).." == "..tostring(doNextCC.SpellId))

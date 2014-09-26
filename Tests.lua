@@ -1230,15 +1230,15 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   TESTAssert(3, table.getn(GVAR.MessageLog), "Should send msg to Warrior, Rogue and Priest");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr first");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
-  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+  TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
   TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
-  TESTAssert("1776", GVAR.MessageLog[2].Payload2, "Send to Rogue to Gouge");
+  TESTAssert("1776,8", GVAR.MessageLog[2].Body, "Send to Rogue to Gouge in 8 sec");
 
   TESTAssert("FriendlyPriest", GVAR.MessageLog[3].To, "Send to Priest next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[3].Header, "Send to Priest to Prepare");
-  TESTAssert("64044", GVAR.MessageLog[3].Payload2, "Send to Priest to Horrify");
+  TESTAssert("64044,12", GVAR.MessageLog[3].Body, "Send to Priest to Horrify");
   
   
   --print("Ticking on +2 sec");
@@ -1250,7 +1250,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   --TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
-  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+  TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
 
 
@@ -1272,7 +1272,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr ");
   TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "5 sec late warning");
-  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+  TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
 
   --print("Ticking on +2 more sec");
@@ -1284,7 +1284,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 8 sec late");
   TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "8 sec late warning");
-  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+  TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
 
   --print("Ticking on +2 more sec");
@@ -1306,7 +1306,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send VLate msg to Warrior");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 11 sec Very late");
   TESTAssert("VeryLateActNow", GVAR.MessageLog[1].Header, "11 sec VERY late warning");
-  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+  TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
 
   --print("Ticking on +1 sec");
@@ -1327,7 +1327,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send VLate msg to Warrior");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 14 sec Very late");
   TESTAssert("VeryLateActNow", GVAR.MessageLog[1].Header, "14 sec VERY late warning");
-  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+  TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
 
   --print("Ticking on +1 sec");
@@ -1426,15 +1426,15 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   TESTAssert(3, table.getn(GVAR.MessageLog), "Should send msg to Warrior, Rogue and Priest");
   TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr first");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
-  TESTAssert("5246", GVAR.MessageLog[1].Payload2, "Send to Warr to Intimidating Shout");
+  TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
   TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
-  TESTAssert("1776", GVAR.MessageLog[2].Payload2, "Send to Rogue to Gouge");
+  TESTAssert("1776,8", GVAR.MessageLog[2].Body, "Send to Rogue to Gouge");
 
   TESTAssert("FriendlyPriest", GVAR.MessageLog[3].To, "Send to Priest next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[3].Header, "Send to Priest to Prepare");
-  TESTAssert("64044", GVAR.MessageLog[3].Payload2, "Send to Priest to Horrify");
+  TESTAssert("64044,12", GVAR.MessageLog[3].Body, "Send to Priest to Horrify");
 
 
 
@@ -1475,9 +1475,9 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   --  btnCCTarget1.Foe = objFoe;
 
   TESTAssert("FriendlyRogue", GVAR.MessageLog[1].To, "Send to Rogue next");
-  TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Rogue to Prepare");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Rogue to Prepare in 14 sec");
 --  TESTAssert("1776", GVAR.MessageLog[1].Payload, "Send to Rogue to Gouge");
-  TESTAssert("1776", GVAR.MessageLog[1].Payload2, "Send to Rogue to Gouge");
+  TESTAssert("1776,14", GVAR.MessageLog[1].Body, "Send to Rogue to Gouge in 14sec");
 
   --print("**Removed Aura")
   -- Now the foe uses his trinket to remove the aura
@@ -1493,7 +1493,7 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   
   TESTAssert("FriendlyRogue", GVAR.MessageLog[1].To, "Send to Rogue next");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Rogue to Act Now");
-  TESTAssert("1776", GVAR.MessageLog[1].Payload2, "Send to Rogue to Gouge");
+  TESTAssert("1776", GVAR.MessageLog[1].Body, "Send to Rogue to Gouge");
 
 
   DEBUG.SetClockSeconds = 103.5;
@@ -1512,11 +1512,11 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
 
   TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest next");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Priest to ActNow");
-  TESTAssert("64044", GVAR.MessageLog[1].Payload2, "Send to Priest to Horrify");
+  TESTAssert("64044", GVAR.MessageLog[1].Body, "Send to Priest to Horrify");
   
   TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
-  TESTAssert("1776", GVAR.MessageLog[2].Payload2, "Send to Rogue to Gouge");
+  TESTAssert("1776,26", GVAR.MessageLog[2].Body, "Send to Rogue to Gouge");
   
   --print("Priest casts Horrify");
   objPvPHelperServer:Apply_Aura("PRIEST123", 64044, "FOEGUID123");
@@ -1532,7 +1532,7 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
 
   TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Priest to Prepare to Act");
-  TESTAssert("15487", GVAR.MessageLog[1].Payload2, "Send to Priest to Silence");
+  TESTAssert("15487,8", GVAR.MessageLog[1].Body, "Send to Priest to Silence");
 
   DEBUG.SetClockSeconds = 110;
   
@@ -1578,35 +1578,35 @@ end
 --END FUNCTIONS
 -- TESTS TO PERFORM
 print("--START TESTS--\n")
---TEST_CCDR()
---TEST_CCDRLIST()
---TEST_CCTYPE()
---TEST_CCTYPELIST()
---TEST_FOEDR()
---TEST_FOEDRLIST()
---TEST_FOE()
---TEST_FOELIST()
---TEST_FRIEND()
---TEST_FRIENDLIST()
---TEST_FRIENDCCTYPE()
---TEST_FRIENDCCTYPELIST()
+TEST_CCDR()
+TEST_CCDRLIST()
+TEST_CCTYPE()
+TEST_CCTYPELIST()
+TEST_FOEDR()
+TEST_FOEDRLIST()
+TEST_FOE()
+TEST_FOELIST()
+TEST_FRIEND()
+TEST_FRIENDLIST()
+TEST_FRIENDCCTYPE()
+TEST_FRIENDCCTYPELIST()
 TEST_AURA_APPLIED()
---TEST_AURA_REMOVED()
-----TEST_GETNEXTSPELL_STANDARD()
-----TEST_GETNEXTSPELL_CHECKS()
---TEST_EVENT_CHATMESSAGE()
---TEST_EVENT_PLAYER_REGEN_DISABLED()
---TEST_EVENT_PLAYER_REGEN_ENABLED()
---TEST_EVENT_RAID_ROSTER_UPDATE()
---TEST_EVENT_SPELL_AURA_REMOVED()
---TEST_EVENT_SPELL_AURA_APPLIED()
---TEST_MESSAGERECEIVED_PLAYERSPELLS()
---TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
---TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
---TEST_EVENT_RAID_ROSTER_UPDATE()
---TEST_EVENT_PARTY_MEMBERS_CHANGED()
---TEST_CLOCK()
---TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
+TEST_AURA_REMOVED()
+--TEST_GETNEXTSPELL_STANDARD()
+--TEST_GETNEXTSPELL_CHECKS()
+TEST_EVENT_CHATMESSAGE()
+TEST_EVENT_PLAYER_REGEN_DISABLED()
+TEST_EVENT_PLAYER_REGEN_ENABLED()
+TEST_EVENT_RAID_ROSTER_UPDATE()
+TEST_EVENT_SPELL_AURA_REMOVED()
+TEST_EVENT_SPELL_AURA_APPLIED()
+TEST_MESSAGERECEIVED_PLAYERSPELLS()
+TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
+TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
+TEST_EVENT_RAID_ROSTER_UPDATE()
+TEST_EVENT_PARTY_MEMBERS_CHANGED()
+TEST_CLOCK()
+TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
 TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
 print("--END TESTS--\n")
 
