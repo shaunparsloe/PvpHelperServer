@@ -36,7 +36,7 @@ function NotificationList:Reset(friendGUID)
   -- Check if we've already got this guid in our list
   for i,v in ipairs(self) do
     if v.To.GUID == friendGUID then
-      --print("DEBUG:NotificationList:Reset(friendGUID) - Resetting "..friendGUID);
+      print("DEBUG:NotificationList:Reset(friendGUID) - Resetting "..friendGUID);
       v:Reset();
     end
   end

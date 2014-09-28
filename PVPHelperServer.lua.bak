@@ -9,6 +9,7 @@ PvPHelperServer = {}
 PvPHelperServer_MainFrame = {}
 PvPHelperServer.__index = PvPHelperServer; -- failed table lookups on the instances should fallback to the class table, to get methods
 
+local xDebug = false
 local L = PVPHelper_LocalizationTable;
 
 -- Globals Section
