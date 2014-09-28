@@ -39,7 +39,7 @@ end
 
 
 function FoeDR:DRLevel()
---  --print("DEBUG:FoeDR:_CalculateDR(), "..tostring(self._Expires));
+--	print("DEBUG:FoeDR:_CalculateDR(), "..tostring(self._Expires));
 	if (GetTime() >= self._Expires) then
 			self._DRLevel = 0;
 	end

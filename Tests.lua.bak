@@ -1668,11 +1668,11 @@ function TEST_PRIEST_ALONE_ROTATION()
 
 
   -- But Horrify expires early!
-  --print("DEBUG: Horrify expires early!");
+  print("DEBUG: Horrify expires early!");
   objPvPHelperServer:Remove_Aura(objFoe.GUID, 64044);
 
 
-  --print("DEBUG: Silence in 2, but we should ACT NOW");
+  print("DEBUG: Silence in 2, but we should ACT NOW");
    
   elapsed = 1;
   DEBUG.SetClockSeconds = DEBUG.SetClockSeconds + elapsed;
