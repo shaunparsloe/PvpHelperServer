@@ -2,6 +2,7 @@ FoeList = {}
 FoeList.__index = FoeList; -- failed table lookups on the instances should fallback to the class table, to get methods
 
 function FoeList.new ()
+  print("DEBUG:FoeList():Setting up new FoeList");
   local self = setmetatable({}, FoeList)
   self._GUIDLookupTable = {}
   self._allCCTypesList = {}

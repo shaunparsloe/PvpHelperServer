@@ -1,28 +1,39 @@
 FriendList = {}
 FriendList.__index = FriendList; -- failed table lookups on the instances should fallback to the class table, to get methods
 
-function FriendList.new()
+function FriendList.new(parent)
+  print("DEBUG:FriendList.new()"); 
   local self = setmetatable({}, FriendList)
   self.GUIDLookupTable = {}
   self.FriendCCTypesList = {}
-  
+  self.Parent = deepcopy(parent);
   return self
 end
 
 function FriendList:Add(friend)
-
 	local foundId = self.GUIDLookupTable[tostring(friend.GUID)];
 	if foundId then
-    	self[foundId] = friend;
-    	--print("DEBUG: PvpHelperServer FriendList:Add- UPDATING " .. friend.Name .. " in friendlist");
-  	else
-	    --print("DEBUG: PvpHelperServer FriendList:Add- adding " .. friend.Name .. " to friendlist");	
-	    table.insert(friend.ContainedInLists, self)
-	    table.insert(self, friend);
-    end
-    self.GUIDLookupTable[tostring(friend.GUID)] = table.getn(self)
-    self:_BuildFriendCCTypesList();
+    self[foundId] = friend;
+    --print("DEBUG: PvpHelperServer FriendList:Add- UPDATING " .. friend.Name .. " in friendlist");
+    self.GUIDLookupTable[tostring(friend.GUID)] = foundId;
+  else
+    --print("DEBUG: PvpHelperServer FriendList:Add- adding " .. friend.Name .. " to friendlist");	
+    table.insert(friend.ContainedInLists, self)
+    table.insert(self, friend);
+    self.GUIDLookupTable[tostring(friend.GUID)] = table.getn(self);
+  end
+  self:_BuildFriendCCTypesList();
+  
+  -- Everytime we add someone to a friendlist, we must get their spells.
+  --print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
+  if self.Parent then
+    self.Parent:SendMessage("WhatSpellsDoYouHave", nil, friend.Name);
+  end
+  --self:SendMessage("PrepareToAct", "64044,25", k.Name);					
+  --self:SendMessage("DummyTestMessage", nil, k.Name)
+
 end
+
 
 function FriendList:Delete(friend)
   friend.ContainedInLists = nil;
