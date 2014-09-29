@@ -238,7 +238,7 @@ function TEST_FOE()
   TESTAssert(22, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
   -- For our testing, pretend 13 seconds have passed, so Expires should now be 5sec
-  objFoe.DRList[1]._Expires = GetTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetPvPClockTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   TESTAssert(5, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
   -- When cc is applied again, the Expiry time should be reset to 18 and DRLevel should be 2 now
@@ -248,7 +248,7 @@ function TEST_FOE()
   TESTAssert(22, math.round(objFoe.DRList[1]:DRExpires()), "2.objFoeDRList[1]:DRExpires()");
   
     -- For our testing, pretend 13 seconds have passed, so Expires should now be 5sec
-  objFoe.DRList[1]._Expires = GetTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetPvPClockTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   TESTAssert(5, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
 -- Now we see that the CC is removed from the Foe, this should reset the DR timer to 18sec.
@@ -260,7 +260,7 @@ function TEST_FOE()
 
 
     -- For our testing, pretend 20 seconds have passed, so Expires should now be -2sec in the past
-  objFoe.DRList[1]._Expires = GetTime() - 2 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetPvPClockTime() - 2 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   -- Once the time has elapsed, we should see the DRLevel drop to 0 
   -- and the Expires time set to 0
   TESTAssert(0, objFoe.DRList[1]:DRLevel(), "4.objFoeDRList[1]:DRLevel()");
@@ -766,7 +766,7 @@ function TEST_GETNEXTSPELL_CHECKS()
     local objFoundFriend = objPvPHelperServer.FriendList:LookupGUID("WARR123");
     local objSpell = objFoundFriend.CCTypes:LookupSpellId(107570);
     objSpell._IsCooldown = true;
-    objSpell._CooldownExpires = GetTime() + 30;
+    objSpell._CooldownExpires = GetPvPClockTime() + 30;
   -- Assert should be charge + shockwave  
   nextSpell = objPvPHelperServer:NextCCSpell(CCGUID1);
   TESTAssert(46968, nextSpell.SpellId, "4.Storm Bolt is not available")
@@ -1167,10 +1167,10 @@ end
 function TEST_CLOCK()
 
   DEBUG.SetClockSeconds = 100;
-  TESTAssert(100, GetTime(), "Set the clock correctly for debugging")  
+  TESTAssert(100, GetPvPClockTime(), "Set the clock correctly for debugging")  
   
   DEBUG.SetClockSeconds = 102;
-  TESTAssert(102, GetTime(), "Set the clock correctly for debugging")  
+  TESTAssert(102, GetPvPClockTime(), "Set the clock correctly for debugging")  
 
 end
 

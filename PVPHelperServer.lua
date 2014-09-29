@@ -265,36 +265,32 @@ function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
 		print("PvPHelperServer:SetFriendSpells - "..strFrom.." not found")
 	end
 end
-
 function PvPHelperServer:UpdateParty()
   local objFriendList = FriendList.new()
   
-  if GetNumGroupMembers() == 0 then
-    local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
-    objFriendList:Add(objFriend)
-  else
-    print("Checking party of "..GetNumGroupMembers());
-    for i=1,GetNumGroupMembers() do
-      local unittowatch = "party"..i;
-      print(unittowatch);
-      local _,isdead,online,name,class,guid;
-      isdead = UnitIsDeadOrGhost(unittowatch);
-      name = UnitName(unittowatch);
-      print("unitName="..tostring(name));
-      online = UnitIsConnected(unittowatch);
-      _,class = UnitClass(unittowatch);
-      guid = UnitGUID(unittowatch);
-      print("unitGUID="..tostring(guid));
-      
-      local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
-      print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
+  print("CHecking party of "..GetNumGroupMembers());
+  for i=1,GetNumGroupMembers() do
+    local unittowatch = "party"..i;
+    print(unittowatch);
+    local _,isdead,online,name,class,guid;
+    isdead = UnitIsDeadOrGhost(unittowatch);
+    name = UnitName(unittowatch);
+    print("unitName="..tostring(name));
+    online = UnitIsConnected(unittowatch);
+    _,class = UnitClass(unittowatch);
+    guid = UnitGUID(unittowatch);
+    print("unitGUID="..tostring(guid));
+    
+    local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
+    print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
 
-      objFriendList:Add(objFriend)
-    end
+    objFriendList:Add(objFriend)
   end
+
   self.FriendList = nil;
   self.FriendList = objFriendList
 end
+
 
 function PvPHelperServer:SetFriendSpellOnCooldown(strSpellId, strFrom)
 	print("DEBUG:PvPHelperServer:SetFriendSpellOnCooldown "..strSpellId..", "..strFrom..")")
@@ -415,7 +411,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 --print ("on update called");
 
   --print("DEBUG: * ");
-  --print("DEBUG:Time is now: "..GetTime());
+  --print("DEBUG:Time is now: "..GetPvPClockTime());
   --print("DEBUG:PVPHelperServer_OnUpdate()");
   --print("DEBUG: * ");
 
@@ -452,7 +448,8 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 
       print("DEBUG:PVPHelperServer_OnUpdate() Adding new Focus "..tostring(ccTargetClass).." "..tostring(ccTargetName).."("..ccTargetGuid..")");
    
-      local foe = Foe.new ({GUID=ccTargetGuid, Name=ccTargetName, Class=ccTargetClass})
+      ccTargetFoe = Foe.new ({GUID=ccTargetGuid, Name=ccTargetName, Class=ccTargetClass})
+      objPvPServer.FoeList:Add(ccTargetFoe);
     end
   end
   
@@ -531,7 +528,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 			print("got no CCtarget1 foe");
 		end
 	else
-		print("Got no Focus Target");
+		--print("DEBUG:PvPHelperServer:Got no Focus Target");
 	end
 
 	objPvPServer.NotificationList:SendNotifications();
