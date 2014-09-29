@@ -30,6 +30,19 @@ function NotificationList:Add(objNotification)
   
 end
 
+-- Update/Insert notification
+function NotificationList:Reset(friendGUID)
+
+  -- Check if we've already got this guid in our list
+  for i,v in ipairs(self) do
+    if v.To.GUID == friendGUID then
+      --print("DEBUG:NotificationList:Reset(friendGUID) - Resetting "..friendGUID);
+      v:Reset();
+    end
+  end
+  
+end
+
 
 function NotificationList:SendNotifications()
   
@@ -47,7 +60,7 @@ function NotificationList:SendNotifications()
   
 end
 
-function NotificationList:ResetOrder();
+function NotificationList:ResetOrder()
   for i,note in ipairs(self) do
     note.OrderId = 100;
   end

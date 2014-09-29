@@ -42,7 +42,7 @@ function OrderedCCList:ListSpells()
   for i,v in ipairs(self) do
     local objFriendSpell = v.Spell;
     --math.max(x.CDExpires, x.DRXpires)
-    --print("DEBUG:OrderedCCList:"..math.max(v.CDExpires, v.DRXpires)..","..v.Spell.Weighting..","..v.Spell.SpellId..".DRtype "..objFriendSpell.DRType.." DR="..v.DRXpires.." CD="..v.CDExpires.." Weight="..v.Spell.Weighting.." ("..objFriendSpell.CCName..") for "..v.Friend.Name);
+    --print("DEBUG:OrderedCCList:"..math.max(v.CDExpires, v.DRXpires)..","..v.Spell.Weighting..",id="..v.Spell.SpellId..", dur="..v.Spell.Duration.." DRtype="..objFriendSpell.DRType.." DR="..v.DRXpires.." CD="..v.CDExpires.." Weight="..v.Spell.Weighting.." ("..objFriendSpell.CCName..") for "..v.Friend.Name);
   end
   
 end

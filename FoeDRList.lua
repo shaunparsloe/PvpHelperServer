@@ -37,7 +37,7 @@ function FoeDRList:ListDRs()
   local strJoin = "";
   local strResult = "";
   for i,drtype in ipairs(self) do
-    strDR = "("..tostring(drtype.DRType)..") Level "..tostring(drtype:DRLevel()).." expires in "..tostring(drtype:DRExpires()).."sec\n  "
+    local strDR = "("..tostring(drtype.DRType)..") Level "..tostring(drtype:DRLevel()).." expires in "..tostring(drtype:DRExpires()).."sec\n  "
     strJoin = ",";
     print(tostring(i)..") DRTable "..strDR)
     strResult = strResult..strJoin..strDR

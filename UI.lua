@@ -31,7 +31,7 @@ function CreateUIElements(parent)
 	frame:SetWidth(110); 
 	frame:SetHeight(100);
 
-	fontstring = frame:CreateFontString("PVPHelperServerText", "ARTWORK","GameFontNormal")
+	local fontstring = frame:CreateFontString("PVPHelperServerText", "ARTWORK","GameFontNormal")
 	fontstring:SetPoint("TOPLEFT", 5, -15);
 	fontstring:SetSize(128, 12);
 
@@ -41,7 +41,7 @@ function CreateUIElements(parent)
 	--CreateAssistButton();
     CreateCCButtons(parent);
     
-    CreateMessageFrame(frame);
+    --CreateMessageFrame(frame);
     
   return frame;
 end
@@ -58,30 +58,6 @@ print("Called PVPHelperServer_DragStop()")
 end
 
 
---function CreateAssistButton()
---	--print("Starting to create Assist button..."); 
---
---  local button = CreateFrame("Button", "AssistButton", PvPHelperServer_MainFrame, "SecureActionButtonTemplate")
---      
-----  button:SetText("ASSIST")
---  
---  button:SetAttribute("type1", "macro") -- left click causes macro
---  button:SetAttribute("macrotext1", "/say zomg a left click!"); -- text for macro on left click
---  
---  --button:SetTexture(1, 1, 1, 1)
---    
---  button:SetNormalTexture("Interface/Buttons/UI-Panel-Button-Up")
---  button:SetHighlightTexture("Interface/Buttons/UI-Panel-Button-Highlight")
---  button:SetPushedTexture("Interface/Buttons/UI-Panel-Button-Down")
---
---  button:SetPoint("TOPLEFT", -80, 50)
---  button:SetWidth(100)
---  button:SetHeight(60)
---  
---  UIWidgets.AssistButton = button;
---end
---
-
 function CreateCCButtons(pvpHelperServer)
 
   GVAR.PVPHelperServer = pvpHelperServer;
@@ -92,11 +68,11 @@ function CreateCCButtons(pvpHelperServer)
 	
   UIWidgets.SetCCButton = {};
 	UIWidgets.SetCCButton[1] = CreateSetCCButton("btnSetCCTarget1",10,40,30, UIWidgets.CCButton[1] );
-	--UIWidgets.SetCCButton[2] = CreateSetCCButton("btnSetCCTarget2",120,40,30, UIWidgets.CCButton[2]);
+	UIWidgets.SetCCButton[2] = CreateSetCCButton("btnSetCCTarget2",120,40,30, UIWidgets.CCButton[2]);
   
 	
 	UIWidgets.SetCCButton[1]:SetScript("OnClick", SetupButtonWithClass);
-	--UIWidgets.SetCCButton[2]:SetScript("OnClick", SetupButtonWithClass);
+	--UIWidgets.SetCCButton[2]:SetScript("OnClick", GVAR.PVPHelperServer:UpdateParty);
 
 end
 
@@ -172,8 +148,12 @@ function CreateCCButton(strButtonName, iLeft, iWidth, iHeight)
 		return button;
 end
 
+function AskForSpells()
+  
+end
+
 function SetupButtonWithClass(setbutton)
-  button = setbutton.SetButton;
+  local button = setbutton.SetButton;
   local name = UnitName("target"); 
   if name then
     local guid = UnitGUID("target"); 
@@ -207,16 +187,6 @@ function SetupButtonWithClass(setbutton)
     local qInspectSpec =  GetInspectSpecialization("target") 
     print("qInspectSpec = "..tostring(qInspectSpec))
 
-    
-    --local qclassToken = ENEMY_Data[i].classToken
-    --local qspecNum    = ENEMY_Data[i].specNum
-    --local qtalentSpec = ENEMY_Data[i].talentSpec
-
-    --ENEMY_Name2Button[qname] = i
-    --button.buttonNum = i
-
-  --local qcolor = RAID_CLASS_COLORS[classFileName]
-    --print(class, qcolor.r, qcolor.g, qcolor.b)
     
 
     local colR = qcolor.r
@@ -313,13 +283,7 @@ function CreateMessageFrame(parent)
 	messageFrame:SetTextColor(1, 1, 1, 1) -- default color
 	messageFrame:SetJustifyH("LEFT")
 	messageFrame:SetFading(false)
---	messageFrame:SetMaxLines(25)
 
 	parent.MessageFrame = messageFrame;
 	
---	
---	for i = 1, 25 do
---		messageFrame:AddMessage(i .. ". Here is a message!")
---	end
-
 end
