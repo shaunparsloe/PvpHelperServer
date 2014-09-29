@@ -401,8 +401,8 @@ function RegisterMainFrameEvents(self)
 	PvPHelperServer_MainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 	PvPHelperServer_MainFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	PvPHelperServer_MainFrame:RegisterEvent("CHAT_MSG_ADDON")
-	PvPHelperServer_MainFrame:RegisterEvent("RAID_ROSTER_UPDATE")
-	PvPHelperServer_MainFrame:RegisterEvent("PARTY_MEMBERS_CHANGED")
+	PvPHelperServer_MainFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
+  
 	PvPHelperServer_MainFrame:SetScript("OnEvent", PVPHelperServer_OnEvent)
 
 end
