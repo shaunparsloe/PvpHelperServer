@@ -64,15 +64,12 @@ function CreateCCButtons(pvpHelperServer)
   
 	UIWidgets.CCButton = {};
 	UIWidgets.CCButton[1] = CreateCCButton("btnCCTarget1",10,100,60);
-	--UIWidgets.CCButton[2] = CreateCCButton("btnCCTarget2",120,100,60);
-	
+
   UIWidgets.SetCCButton = {};
 	UIWidgets.SetCCButton[1] = CreateSetCCButton("btnSetCCTarget1",10,40,30, UIWidgets.CCButton[1] );
-	UIWidgets.SetCCButton[2] = CreateSetCCButton("btnSetCCTarget2",120,40,30, UIWidgets.CCButton[2]);
-  
 	
 	UIWidgets.SetCCButton[1]:SetScript("OnClick", SetupButtonWithClass);
-	--UIWidgets.SetCCButton[2]:SetScript("OnClick", GVAR.PVPHelperServer:UpdateParty);
+
 
 end
 
@@ -83,10 +80,7 @@ function CreateSetCCButton(strButtonName, iLeft, iWidth, iHeight, setButton)
   button:SetWidth(iWidth)
   button:SetHeight(iHeight)
       
---  button:SetText("ASSIST")
-  
-  
-  --button:SetTexture(1, 1, 1, 1)
+  button:SetText("SET")
     
   button:SetNormalTexture("Interface/Buttons/UI-Panel-Button-Up")
   button:SetHighlightTexture("Interface/Buttons/UI-Panel-Button-Highlight")
@@ -142,95 +136,77 @@ function CreateCCButton(strButtonName, iLeft, iWidth, iHeight)
 		button.HealthText:SetTextColor(1, 1, 1, 1)
     button.HealthText:SetWidth(iWidth)
 
-
-    --button.flashing = 1;
-		--print("Created button "..strButtonName); 
+		--print("DEBUG:UI:Created button "..strButtonName); 
 		return button;
 end
 
-function AskForSpells()
-  
-end
 
 function SetupButtonWithClass(setbutton)
   local button = setbutton.SetButton;
-  local name = UnitName("target"); 
-  if name then
-    local guid = UnitGUID("target"); 
-    --button.GUID = UnitGUID("target");
-    print(name.." has the GUID: "..guid);
-    local targetID = UnitGUID("target"); 
-    local qname       = UnitName("target")
-    print("Unitname = "..tostring(qname))
-    local qclass, qclassFileName = UnitClass("target")
-    print("qclass = "..tostring(qclass)..", qclassFileName= "..tostring(qclassFileName))
-    local qcolor = RAID_CLASS_COLORS[qclassFileName]
+  local focusName = UnitName("focus"); 
 
-    local foe = Foe.new ({GUID=guid, Name=name, Class=strupper(qclass)})
-    button.Foe = foe;
-    local foundfoe = GVAR.PVPHelperServer.FoeList:LookupGUID(guid)
-    if not foundfoe then
-      print("ADDED FOE "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") TO FOE LIST")
+  if focusName then -- Have I focussed on anyone?
+    local focusGuid = UnitGUID("focus"); 
+    local focusID = UnitGUID("focus"); 
+    local focusName = UnitName("focus")
+    local localizedClass, focusClassName = UnitClass("focus")
+    local focusClassColour = RAID_CLASS_COLORS[focusClassName]
+
+
+    local foe
+    local foundfoe = GVAR.PVPHelperServer.FoeList:LookupGUID(focusGuid)
+    if foundfoe then
+      foe = foundfoe;
+      print("DEBUG:UI:SetupButtonWithClass():FOUND FOE "..tostring(foe.Class).." "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") IN FOE LIST")
+    else 
+      foe = Foe.new ({GUID=focusGuid, Name=focusName, Class=focusClassName})
+      print("DEBUG:UI:SetupButtonWithClass():ADDED FOE "..tostring(localizedClass).." "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") TO FOE LIST")
       GVAR.PVPHelperServer.FoeList:Add(foe);
-    else
-      print("FOUND FOE "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") IN FOE LIST")
     end
-
-    --print(qclass, qcolor.r, qcolor.g, qcolor.b)
     
-
-    local qSpec = GetSpecialization("target")
-    print("qSpec = "..tostring(qSpec))
-
-    local qSpecName = qSpec and select(2, GetSpecializationInfo(qSpec)) or "None"
-    print("qSpecName = "..tostring(qSpecName))
-    local qInspectSpec =  GetInspectSpecialization("target") 
-    print("qInspectSpec = "..tostring(qInspectSpec))
-
-    
-
-    local colR = qcolor.r
-    local colG = qcolor.g
-    local colB = qcolor.b
-    button.colR  = colR
-    button.colG  = colG
-    button.colB  = colB
-    button.colR5 = colR*0.5
-    button.colG5 = colG*0.5
-    button.colB5 = colB*0.5
-    button.ClassColorBackground:SetTexture(button.colR5, button.colG5, button.colB5, 1)
-    button.HealthBar:SetTexture(colR, colG, colB, 1)
-
-    --print("healthbar texture set")
-
-    button.Name:SetText(qname)
-    
-  
-    button:SetText("ASSIST")
-    button:SetAttribute("type1", "macro") -- left click causes macro
-    button:SetAttribute("macrotext1", "/say zomg a left click!"); -- text for macro on left click
-
+    local colR = focusClassColour.r
+    local colG = focusClassColour.g
+    local colB = focusClassColour.b
+      
     if not inCombat or not InCombatLockdown() then
-      button:SetAttribute("macrotext1", "/target "..qname)
-      print("Set the Macro to /target "..qname)
+      
+      button.Foe = foe;
+      
+      button.colR  = colR
+      button.colG  = colG
+      button.colB  = colB
+      button.colR5 = colR*0.5
+      button.colG5 = colG*0.5
+      button.colB5 = colB*0.5
+      button.ClassColorBackground:SetTexture(button.colR5, button.colG5, button.colB5, 1)
+      button.HealthBar:SetTexture(colR, colG, colB, 1)
+
+      --print("healthbar texture set")
+
+      button.Name:SetText(focusName)
+      
+    
+      button:SetText("ASSIST")
+      button:SetAttribute("type1", "macro") -- left click causes macro
+      
+      --button:SetAttribute("macrotext1", "/target arena1; /focus arena2"); -- text for macro on left click
+
+      button:SetAttribute("macrotext1", "/focus "..focusName)
+      print("Set the Macro to /focus "..focusName)
       
   --    UIWidgets.AssistButton:SetAttribute("macrotext2", "/targetexact "..qname.."\n/focus\n/targetlasttarget")
+  
+      local maxHealth = UnitHealthMax("focus")
+      --print("Max health = ".. maxHealth )
+      if maxHealth then
+        local health = UnitHealth("focus")
+        SetButtonHealth(button, maxHealth, health);
+      end
+
     end
 
-    DEFAULT_CHAT_FRAME:AddMessage( "target health ="..UnitHealth("target") )
-
-    local maxHealth = UnitHealthMax("target")
-    --print("Max health = ".. maxHealth )
-    if maxHealth then
-      local health = UnitHealth("target")
-      SetButtonHealth(button, maxHealth, health);
-    end
-
-
-    --button:SetScript("OnClick", nil);
   end
 
-  
   return button;
 end
 
@@ -249,41 +225,11 @@ function SetButtonHealth(button, maxHealth, health)
         percent = math.max(0, percent)
         percent = math.min(100, percent)
       end
-      --ENEMY_Name2Percent[targetName] = percent
+      
       --print("health percent = ".. percent .."%")
       button.HealthBar:SetWidth(width)
       button.HealthText:SetText(percent)
     end
   end
   return button;
-end
-
-function CreateMessageFrame(parent)
-	local messageFrame = CreateFrame("MessageFrame", nil, parent);
-
---	local t = f:CreateTexture(nil,"BACKGROUND")
---	t:SetTexture("Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
---	t:SetAllPoints(f)
---	f.texture = t
-
-	messageFrame:SetBackdrop( { 
-	  bgFile = "Interface/DialogFrame/UI-DialogBox-Background"
-	  , edgeFile = "Interface/DialogFrame/UI-DialogBox-Border"
-	  , tile = true
-	  , tileSize = 32
-	  , edgeSize = 16, 
-	  insets = { left = 5, right = 5, top = 5, bottom = 5 }
-	});
-
-	messageFrame:SetPoint("TOPLEFT", parent, "TOPRIGHT");
-	messageFrame:SetWidth(500); 
-	messageFrame:SetHeight(300);
-	
-	messageFrame:SetFontObject(GameFontNormal)
-	messageFrame:SetTextColor(1, 1, 1, 1) -- default color
-	messageFrame:SetJustifyH("LEFT")
-	messageFrame:SetFading(false)
-
-	parent.MessageFrame = messageFrame;
-	
 end
