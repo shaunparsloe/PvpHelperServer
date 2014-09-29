@@ -11,7 +11,7 @@ function Notification.new (options)
   {  
     To = options.To,
     ToSpellId = options.SpellId,
-    ToTime = GetPvPClockTime() + options.Seconds, 
+    ToTime = GetTime() + options.Seconds, 
     ToMessage = options.Message,
     OrderId = options.OrderId
   }
@@ -64,7 +64,7 @@ end
 
 function Notification:Send()
   
-  local currentTime = GetPvPClockTime();
+  local currentTime = GetTime();
   
 
   local mustSend = nil;

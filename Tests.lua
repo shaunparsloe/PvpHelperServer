@@ -238,7 +238,7 @@ function TEST_FOE()
   TESTAssert(22, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
   -- For our testing, pretend 13 seconds have passed, so Expires should now be 5sec
-  objFoe.DRList[1]._Expires = GetPvPClockTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   TESTAssert(5, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
   -- When cc is applied again, the Expiry time should be reset to 18 and DRLevel should be 2 now
@@ -248,7 +248,7 @@ function TEST_FOE()
   TESTAssert(22, math.round(objFoe.DRList[1]:DRExpires()), "2.objFoeDRList[1]:DRExpires()");
   
     -- For our testing, pretend 13 seconds have passed, so Expires should now be 5sec
-  objFoe.DRList[1]._Expires = GetPvPClockTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetTime() + 5 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   TESTAssert(5, math.round(objFoe.DRList[1]:DRExpires()), "1.objFoeDRList[1]:DRExpires()");
 
 -- Now we see that the CC is removed from the Foe, this should reset the DR timer to 18sec.
@@ -260,7 +260,7 @@ function TEST_FOE()
 
 
     -- For our testing, pretend 20 seconds have passed, so Expires should now be -2sec in the past
-  objFoe.DRList[1]._Expires = GetPvPClockTime() - 2 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
+  objFoe.DRList[1]._Expires = GetTime() - 2 -- NOTE: we are accessing _Expires directly - not best practise! Only for tests!
   -- Once the time has elapsed, we should see the DRLevel drop to 0 
   -- and the Expires time set to 0
   TESTAssert(0, objFoe.DRList[1]:DRLevel(), "4.objFoeDRList[1]:DRLevel()");
@@ -389,10 +389,8 @@ function TEST_CreateTestFriendList()
   local objFriend3 = Friend.new({GUID="WARR123", Name="FriendlyWarrior", CCTypes=objWarriorCCTypesList})
 
 
-  local objPvPHelperServer = PvPHelperServer.new()
-
   -- Test that we can create a friends list
-  local objFriendList = FriendList.new(objPvPHelperServer);
+  local objFriendList = FriendList.new();
   -- Test that we can add friends to the list
   objFriendList:Add(objFriend1);
   objFriendList:Add(objFriend2);  
@@ -768,7 +766,7 @@ function TEST_GETNEXTSPELL_CHECKS()
     local objFoundFriend = objPvPHelperServer.FriendList:LookupGUID("WARR123");
     local objSpell = objFoundFriend.CCTypes:LookupSpellId(107570);
     objSpell._IsCooldown = true;
-    objSpell._CooldownExpires = GetPvPClockTime() + 30;
+    objSpell._CooldownExpires = GetTime() + 30;
   -- Assert should be charge + shockwave  
   nextSpell = objPvPHelperServer:NextCCSpell(CCGUID1);
   TESTAssert(46968, nextSpell.SpellId, "4.Storm Bolt is not available")
@@ -1169,10 +1167,10 @@ end
 function TEST_CLOCK()
 
   DEBUG.SetClockSeconds = 100;
-  TESTAssert(100, GetPvPClockTime(), "Set the clock correctly for debugging")  
+  TESTAssert(100, GetTime(), "Set the clock correctly for debugging")  
   
   DEBUG.SetClockSeconds = 102;
-  TESTAssert(102, GetPvPClockTime(), "Set the clock correctly for debugging")  
+  TESTAssert(102, GetTime(), "Set the clock correctly for debugging")  
 
 end
 
@@ -1591,8 +1589,7 @@ end
 function TEST_PRIEST_ALONE_ROTATION()
   
   DEBUG.SetClockSeconds = 100;
-  DEBUG.UnitGUID = {};
-  DEBUG.UnitGUID["focus"] = "FOEGUID123";
+  
   -- Use these flags to log messages for debugging
   DEBUG.LogMessages = true;
   GVAR.MessageLog = {};
@@ -1604,7 +1601,7 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   local objFriend1 = Friend.new({GUID="PRIEST123", Name="FriendlyPriest", CCTypes=objPriestCCTypesList})
   -- Test that we can create a friends list
-  local objFriendList = FriendList.new(objPvPHelperServer);
+  local objFriendList = FriendList.new();
   -- Test that we can add friends to the list
   objFriendList:Add(objFriend1);
   
@@ -1638,15 +1635,12 @@ function TEST_PRIEST_ALONE_ROTATION()
   -- Priest Does Horrify Now
   objPvPHelperServer:Apply_Aura("PRIEST123", 64044, "FOEGUID123");
   objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.64044", "WHISPER", "FriendlyPriest")  
-  local totalSeconds = objFoe:MaxActiveCCExpires();
-  print("DEBUG:TESTS:PvPHelperServer:OnUpdate: Current Active CC expires in "..totalSeconds.." sec.");
-
+  
   elapsed = 1;
   DEBUG.SetClockSeconds = DEBUG.SetClockSeconds + elapsed;
   GVAR.MessageLog = {}  
-  print("Time should now be 202");
+  --print("Time now is "..DEBUG.SetClockSeconds);
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
-  print("DEBUG:TESTS:2:PvPHelperServer:OnUpdate: Current Active CC expires in "..totalSeconds.." sec.");
   
   objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells(objFoe.GUID);  
   TESTAssert("15487", tostring(objOrderedCCSpells[1].Spell.SpellId), "Spell Id");
@@ -1674,7 +1668,7 @@ function TEST_PRIEST_ALONE_ROTATION()
 
 
   -- But Horrify expires early!
-  print("DEBUG: Horrify expires early!");
+  --print("DEBUG: Horrify expires early!");
   objPvPHelperServer:Remove_Aura(objFoe.GUID, 64044);
 
 
@@ -1746,9 +1740,9 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send message");
 
---  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest");
---  TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Scream Now");
---  TESTAssert("8122", GVAR.MessageLog[1].Body, "Send to Priest to Scream");
+  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest");
+  TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Scream Now");
+  TESTAssert("8122", GVAR.MessageLog[1].Body, "Send to Priest to Scream");
 
 
 
