@@ -78,7 +78,7 @@ function PvPHelperServer:ResetFriendsAndFoes(options)
   
 	self.FriendList = options.FriendList
 	self:UpdateParty();
-  		local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
+  local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
 
   self.FriendList:Add(objFriend);
   
@@ -269,25 +269,29 @@ end
 function PvPHelperServer:UpdateParty()
   local objFriendList = FriendList.new()
   
-  print("CHecking party of "..GetNumGroupMembers());
-  for i=1,GetNumGroupMembers() do
-    local unittowatch = "party"..i;
-    print(unittowatch);
-    local _,isdead,online,name,class,guid;
-    isdead = UnitIsDeadOrGhost(unittowatch);
-    name = UnitName(unittowatch);
-    print("unitName="..tostring(name));
-    online = UnitIsConnected(unittowatch);
-    _,class = UnitClass(unittowatch);
-    guid = UnitGUID(unittowatch);
-    print("unitGUID="..tostring(guid));
-    
-    local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
-    print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
-
+  if GetNumGroupMembers() == 0 then
+    local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
     objFriendList:Add(objFriend)
-  end
+  else
+    print("Checking party of "..GetNumGroupMembers());
+    for i=1,GetNumGroupMembers() do
+      local unittowatch = "party"..i;
+      print(unittowatch);
+      local _,isdead,online,name,class,guid;
+      isdead = UnitIsDeadOrGhost(unittowatch);
+      name = UnitName(unittowatch);
+      print("unitName="..tostring(name));
+      online = UnitIsConnected(unittowatch);
+      _,class = UnitClass(unittowatch);
+      guid = UnitGUID(unittowatch);
+      print("unitGUID="..tostring(guid));
+      
+      local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
+      print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
 
+      objFriendList:Add(objFriend)
+    end
+  end
   self.FriendList = nil;
   self.FriendList = objFriendList
 end
@@ -337,37 +341,10 @@ function PVPHelperServer_OnEvent(self, event, ...)
 	if event == "PLAYER_LOGIN" then
 	 objPvPServer:Initialize();
 
-	elseif(event=="RAID_ROSTER_UPDATE") then
 	
-		if not(UnitInRaid("player")) then
-			frame:RegisterEvent("PARTY_MEMBERS_CHANGED"); --reactive party watching on raid leave
-			return;
-		end
-		
-    local _,name,class,online,role
-		--		objPvPServer = PvPHelperServer.ResetFriendsAndFoes({FriendList = objFriendList, FoeList = objFoeList})
---print("DEBUG: Raid roster update");
-		local objFriendList = FriendList.new()
-		local i
-		for i=1,GetNumRaidMembers() do
-			name,_,_,_,_,class,_,online,_,_,_,role = GetRaidRosterInfo(i);
-			local objFriend = Friend.new({GUID=UnitGUID(name), Name=name, CCTypes=CCTypeList.new()})
-				--print("DEBUG: PvpHelperServer RAID_ROSTER_UPDATE- adding " .. tostring(name) .." to friendlist");
 
-			objFriendList:Add(objFriend)
-		end
-	
-		objPvPServer.FriendList = nil;
-		objPvPServer.FriendList = objFriendList
-
-	elseif(event=="PARTY_MEMBERS_CHANGED") then
-  print("PARTY MEMBERS CHANGED");
-		if UnitInRaid("player") then
-			frame:UnregisterEvent("PARTY_MEMBERS_CHANGED"); --no need to use this if in raid
-			return
-		elseif not(UnitInParty("player")) then
-			return
-		end
+	elseif(event=="GROUP_ROSTER_UPDATE") then
+    print("DEBUG:PVPHelperServer_OnEvent: GROUP_ROSTER_UPDATE");
     self:UpdateParty();
 
 	elseif event == "PLAYER_ENTERING_WORLD" then
@@ -461,10 +438,27 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
   objPvPServer.NotificationList:ResetOrder();
 	
   local iNotificationOrder = 0
-	local btnCCTarget1 = UIWidgets.CCButton[1];
-	if (btnCCTarget1) then
-		if (btnCCTarget1.Foe) then
-			local objOrderedCCSpells = objPvPServer:OrderedCCSpells(btnCCTarget1.Foe.GUID);
+	local ccTargetGuid = UnitGUID("focus")
+  local ccTargetFoe = nil;
+  
+  if (ccTargetGuid) then
+    ccTargetFoe = objPvPServer.FoeList:LookupGUID(ccTargetGuid);
+    -- If this is the first time that this person has been focus targeted then add them to the FoeList.
+    if not (ccTargetFoe) then
+      local ccTargetID = UnitGUID("focus"); 
+      local ccTargetName = UnitName("focus")
+      local ccTargetLocalizedClass, ccTargetClass = UnitClass("target")
+      local ccTargetColor = RAID_CLASS_COLORS[ccTargetClass]
+
+      print("DEBUG:PVPHelperServer_OnUpdate() Adding new Focus "..tostring(ccTargetClass).." "..tostring(ccTargetName).."("..ccTargetGuid..")");
+   
+      local foe = Foe.new ({GUID=ccTargetGuid, Name=ccTargetName, Class=ccTargetClass})
+    end
+  end
+  
+	if (ccTargetGuid) then
+		if (ccTargetFoe) then
+			local objOrderedCCSpells = objPvPServer:OrderedCCSpells(ccTargetFoe.GUID);
       
       -- DEBUG list CCspells
       objOrderedCCSpells:ListSpells();
@@ -472,11 +466,11 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 			--frame.MessageFrame:AddMessage("CDExpires, DRExpires, SPELL NAME, IsCD, IsAvail, Duration, DRLevel");
 			if (objOrderedCCSpells) then
         
-        local totalSeconds = btnCCTarget1.Foe:MaxActiveCCExpires();
+        local totalSeconds = ccTargetFoe:MaxActiveCCExpires();
         if totalSeconds > 0 then
           --print("DEBUG:PvPHelperServer:OnUpdate: Current Active CC expires in "..totalSeconds.." sec.");
         end
-        --print ("totalSeconds = btnCCTarget1.Foe:MaxActiveCCExpires(); = "..totalSeconds);
+        --print ("totalSeconds = ccTargetFoe:MaxActiveCCExpires(); = "..totalSeconds);
         -- Now loop through all of my Friendslist and find the next spell for each  
         local objFriendAssigned = FriendList.new();
         local objDRAssigned = FoeDRList.new();
@@ -537,7 +531,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 			print("got no CCtarget1 foe");
 		end
 	else
-		print("Got no CCTarget1 button");
+		print("Got no Focus Target");
 	end
 
 	objPvPServer.NotificationList:SendNotifications();

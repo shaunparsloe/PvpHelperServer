@@ -1064,12 +1064,12 @@ function TEST_EVENT_RAID_ROSTER_UPDATE()
 
   -- Set the number of raid members that should be reported
   -- and that the player is in a raid
-  DEBUG.GetNumRaidMembers = 2
+  DEBUG.GetNumGroupMembers = 2
   DEBUG.UnitInRaid = {};
   DEBUG.UnitInRaid["player"]= {};
   DEBUG.UnitInRaid["player"].retval = true;
   
-  DEBUG.GetNumPartyMembers = 0 
+  DEBUG.GetNumGroupMembers = 0 
   DEBUG.UnitInParty = {};
   DEBUG.UnitInParty["player"]= {};
   DEBUG.UnitInParty["player"].retval = false;
@@ -1126,12 +1126,12 @@ function TEST_EVENT_PARTY_MEMBERS_CHANGED()
 
   -- Set the number of raid members that should be reported
   -- and that the player is in a raid
-  DEBUG.GetNumRaidMembers = 0   
+  DEBUG.GetNumGroupMembers = 0   
   DEBUG.UnitInRaid = {};
   DEBUG.UnitInRaid["player"]= {};
   DEBUG.UnitInRaid["player"].retval = false;
   
-  DEBUG.GetNumPartyMembers = 2 
+  DEBUG.GetNumGroupMembers = 2 
   DEBUG.UnitInParty = {};
   DEBUG.UnitInParty["player"]= {};
   DEBUG.UnitInParty["player"].retval = true;
