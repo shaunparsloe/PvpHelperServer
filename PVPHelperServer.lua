@@ -18,27 +18,11 @@ local CONSTANTS = {};
 
 function PvPHelperServer.new (options)
 	local self = setmetatable({}, PvPHelperServer)
-	
-	
-	self.NotificationList= NotificationList.new();
 
-	self.Message = Message.new();
-	self.Message.ReceivePrefix = "PvPHelperServer";	
-
-	self.FriendList = FriendList.new();
-	self.FoeList = FoeList.new();
-	self.GlobalCCTypesList = {}
-	self.GlobalCCDRList = {}
-
-	local objDRTypesList = CCDRList.new()
-	GVAR.AllDRTypes = objDRTypesList.LoadAllDRSpells()
-
-	local objList = nil;
-	objList = CCTypeList.new();
-	GVAR.AllCCTypes = objList:LoadAllCCTypes()	
-	
 	self:Initialize();
 
+	self.UI = {};
+  
 	PvPHelperServer_MainFrame = CreateUIElements(self);
 
 	RegisterMainFrameEvents(self);
@@ -49,54 +33,30 @@ end
 
 function PvPHelperServer:Initialize()
 	--print("DEBUG: PvpHelperServer - Initializing");
-	--self.MessageLog = {}
-	--self.MessageLog.Sent = {}
-	--self.MessageLog.Received= {}
 
-	self.NotificationList= NotificationList.new();
+  -- Clear all Notifications ant timers
+  self.NotificationList = NotificationList.new();
 
-		local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
-		local objFriendList = FriendList.new()
-		objFriendList:Add(objFriend)
-    
+	self.Message = Message.new();
+	self.Message.ReceivePrefix = "PvPHelperServer";	
 
-		--print("Clearing FoeList");
-		local objFoeList = FoeList.new()
-		self:ResetFriendsAndFoes({FriendList = objFriendList, FoeList = objFoeList})
+  self:UpdateParty();
+  self.FoeList = FoeList.new()
+  
+  -- Rebuild the SELF globals list
+  self.GlobalCCTypesList = CCTypeList:LoadAllCCTypes();
+  self.GlobalCCDRList = CCDRList.LoadAllDRSpells();
+
+  -- Also build a copy in GVAR Lists
+	GVAR.AllDRTypes = CCDRList:LoadAllDRSpells()
+	GVAR.AllCCTypes = CCTypeList:LoadAllCCTypes()	
+  
 
 
-
-	self.UI = {};
 	
 end
 
 
-function PvPHelperServer:ResetFriendsAndFoes(options)
-  -- the new instance
-	--print("Resetting the PvPHelperServer:ResetFriendsAndFoes instance");
-  
-  
-	self.FriendList = options.FriendList
-	self:UpdateParty();
-  local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
-
-  self.FriendList:Add(objFriend);
-  
-  self.FoeList = options.FoeList
-	self.GlobalCCTypesList = CCTypeList:LoadAllCCTypes();
-	self.GlobalCCDRList = CCDRList.LoadAllDRSpells();
-	
-	for i, k in pairs(self.FriendList) do
-		if (k.Name) then
-				--print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
-				self:SendMessage("WhatSpellsDoYouHave",nil, k.Name);
-			--self:SendMessage("PrepareToAct", "64044,25", k.Name);					
-				--self:SendMessage("DummyTestMessage", nil, k.Name)
-			end
-	end
-	
-	return self;
-end
 
 
 function PvPHelperServer:Apply_Aura(sourceGUID, sourceSpellId, destGUID)
