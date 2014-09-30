@@ -282,7 +282,7 @@ function PvPHelperServer:UpdateParty()
     print("unitGUID="..tostring(guid));
     
     local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
-    --print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
+    print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
 
     objFriendList:Add(objFriend)
   end
@@ -340,7 +340,7 @@ function PVPHelperServer_OnEvent(self, event, ...)
 	
 
 	elseif(event=="GROUP_ROSTER_UPDATE") then
-    --print("DEBUG:PVPHelperServer_OnEvent: GROUP_ROSTER_UPDATE");
+    print("DEBUG:PVPHelperServer_OnEvent: GROUP_ROSTER_UPDATE");
     self:UpdateParty();
 
 	elseif event == "PLAYER_ENTERING_WORLD" then
@@ -446,7 +446,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
       local ccTargetLocalizedClass, ccTargetClass = UnitClass("target")
       local ccTargetColor = RAID_CLASS_COLORS[ccTargetClass]
 
-      --print("DEBUG:PVPHelperServer_OnUpdate() Adding new Focus "..tostring(ccTargetClass).." "..tostring(ccTargetName).."("..ccTargetGuid..")");
+      print("DEBUG:PVPHelperServer_OnUpdate() Adding new Focus "..tostring(ccTargetClass).." "..tostring(ccTargetName).."("..ccTargetGuid..")");
    
       ccTargetFoe = Foe.new ({GUID=ccTargetGuid, Name=ccTargetName, Class=ccTargetClass})
       objPvPServer.FoeList:Add(ccTargetFoe);
