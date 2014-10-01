@@ -157,10 +157,10 @@ function SetupButtonWithClass(setbutton)
     local foundfoe = GVAR.PVPHelperServer.FoeList:LookupGUID(focusGuid)
     if foundfoe then
       foe = foundfoe;
-      --print("DEBUG:UI:SetupButtonWithClass():FOUND FOE "..tostring(foe.Class).." "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") IN FOE LIST")
+      print("DEBUG:UI:SetupButtonWithClass():FOUND FOE "..tostring(foe.Class).." "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") IN FOE LIST")
     else 
       foe = Foe.new ({GUID=focusGuid, Name=focusName, Class=focusClassName})
-      --print("DEBUG:UI:SetupButtonWithClass():ADDED FOE "..tostring(localizedClass).." "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") TO FOE LIST")
+      print("DEBUG:UI:SetupButtonWithClass():ADDED FOE "..tostring(localizedClass).." "..tostring(foe.Name).." (".. tostring(foe.GUID) ..") TO FOE LIST")
       GVAR.PVPHelperServer.FoeList:Add(foe);
     end
     
