@@ -64,7 +64,7 @@ function PvPHelperServer:Apply_Aura(sourceGUID, sourceSpellId, destGUID)
 		
 		else
 --			print("PvPH_Server:Apply_Aura 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID)
-			print("PvPH_Server:Apply_Aura - Cannot find friend spell "..sourceSpellId)
+			--print("DEBUG:PvPH_Server:Apply_Aura - Cannot find friend spell "..sourceSpellId)
 		end
 	else
 		-- This aura wasn't applied by one of my friends:
@@ -204,6 +204,7 @@ function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
 	-- should get the guid as well as spells list.
 	local objFriend = self.FriendList:LookupName(strFrom)
 	if (objFriend) then
+    print("PvPHelperServer:SetFriendSpells - "..strFrom.." says that he has the following spells: "..tostring(strSpellsList));
 		objFriend:UpdateSpells(strSpellsList, GVAR.AllCCTypes);
 	else
 		print("PvPHelperServer:SetFriendSpells - "..strFrom.." not found")
@@ -230,7 +231,7 @@ end
 function PvPHelperServer:UpdateParty()
   local objFriendList = FriendList.new()
   
---print("DEBUG:PvPHelperServer:UpdateParty():Checking party of "..GetNumGroupMembers());
+print("DEBUG:PvPHelperServer:UpdateParty():Checking party of "..GetNumGroupMembers());
 
   local objPlayer = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
   objFriendList:Add(objPlayer);
@@ -253,7 +254,7 @@ function PvPHelperServer:UpdateParty()
     --print("DEBUG:PvPHelperServer:UpdateParty():unitGUID="..tostring(guid));
       
       local objFriend = Friend.new({GUID=guid, Name=name.."-"..realm, CCTypes=CCTypeList.new()})
-      --print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
+      print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
 
       objFriendList:Add(objFriend)
     end
@@ -264,7 +265,7 @@ function PvPHelperServer:UpdateParty()
   
   for i, k in pairs(self.FriendList) do
     if (k.Name) then
-        --print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
+        print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
         self:SendMessage("WhatSpellsDoYouHave",nil, k.Name);
 
       end
@@ -282,10 +283,10 @@ function PvPHelperServer:SetFriendSpellOnCooldown(strSpellId, strFrom)
       objFriendSpell:CastSpell()	-- Mark this as cast to set timeout and cooldown
       self.NotificationList:Reset(objFoundFriend.GUID);
     else
-      print("SetFriendSpellOnCooldown cannot find friendspell : "..strSpellId)
+      --print("DEBUG:SetFriendSpellOnCooldown cannot find friendspell : "..strSpellId)
     end
   else
-    print("SetFriendSpellOnCooldown cannot find friend : "..strFrom)
+    --print("SetFriendSpellOnCooldown cannot find friend : "..strFrom)
   end
 end
 

@@ -26,6 +26,7 @@ function Friend:UpdateSpells(strNewCCTypesString, objAllCCTypes)
     local cctype = objAllCCTypes:LookupSpellId(strCCType);
     local cctypeCopy = deepcopy(cctype);
     if (cctypeCopy) then
+      print("DEBUG:Friend:UpdateSpells - Adding:"..cctypeCopy.CCName)
       newCCTypes:Add(cctypeCopy);
     else
       print("Friend:UpdateSpells - CAN'T FIND CCTYPE:"..strCCType)
