@@ -105,7 +105,7 @@ function PvPHelperServer:Apply_Aura(sourceGUID, sourceSpellId, destGUID)
 	if objFoundFriend then
 		objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
 		if objFriendSpell then
-			print("DEBUG:PvPHelperServer:Apply_Aura -CAST SPELL 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID..", ccName: "..objFriendSpell.CCName .." ccType)"..objFriendSpell.CCType)
+		  --print("DEBUG:PvPHelperServer:Apply_Aura -CAST SPELL 1) "..sourceGUID.." 2)"..sourceSpellId.." 3)"..destGUID..", ccName: "..objFriendSpell.CCName .." ccType)"..objFriendSpell.CCType)
 			objFriendSpell:CastSpell();
       self.NotificationList:Reset(sourceGUID);
 
@@ -268,23 +268,29 @@ end
 function PvPHelperServer:UpdateParty()
   local objFriendList = FriendList.new()
   
-  print("CHecking party of "..GetNumGroupMembers());
+--print("DEBUG:PvPHelperServer:UpdateParty():Checking party of "..GetNumGroupMembers());
   for i=1,GetNumGroupMembers() do
     local unittowatch = "party"..i;
-    print(unittowatch);
-    local _,isdead,online,name,class,guid;
-    isdead = UnitIsDeadOrGhost(unittowatch);
-    name = UnitName(unittowatch);
-    print("unitName="..tostring(name));
-    online = UnitIsConnected(unittowatch);
-    _,class = UnitClass(unittowatch);
-    guid = UnitGUID(unittowatch);
-    print("unitGUID="..tostring(guid));
+    local isdead = UnitIsDeadOrGhost(unittowatch);
+    local name, realm = UnitName(unittowatch);
+    local online = UnitIsConnected(unittowatch);
+    local _,class = UnitClass(unittowatch);
+    local guid = UnitGUID(unittowatch);
     
-    local objFriend = Friend.new({GUID=guid, Name=name, CCTypes=CCTypeList.new()})
-    --print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
+    if name then -- Check that this is a valid user
+      if not realm then
+        realm = GetRealmName()
+      end
+      
+    --print("DEBUG:PvPHelperServer:UpdateParty():Watching "..tostring(unittowatch));
+    --print("DEBUG:PvPHelperServer:UpdateParty():unitName="..tostring(name));
+    --print("DEBUG:PvPHelperServer:UpdateParty():unitGUID="..tostring(guid));
+      
+      local objFriend = Friend.new({GUID=guid, Name=name.."-"..realm, CCTypes=CCTypeList.new()})
+      --print("DEBUG: PvpHelperServer PARTY_MEMBERS_CHANGED- adding " .. tostring(name) .. " to friendlist");
 
-    objFriendList:Add(objFriend)
+      objFriendList:Add(objFriend)
+    end
   end
 
   self.FriendList = nil;
@@ -293,7 +299,7 @@ end
 
 
 function PvPHelperServer:SetFriendSpellOnCooldown(strSpellId, strFrom)
-	print("DEBUG:PvPHelperServer:SetFriendSpellOnCooldown "..strSpellId..", "..strFrom..")")
+  --print("DEBUG:PvPHelperServer:SetFriendSpellOnCooldown "..strSpellId..", "..strFrom..")")
   local objFoundFriend = self.FriendList:LookupName(strFrom);
   if objFoundFriend then
     local objFriendSpell = objFoundFriend.CCTypes:LookupSpellId(strSpellId);
@@ -341,7 +347,7 @@ function PVPHelperServer_OnEvent(self, event, ...)
 
 	elseif(event=="GROUP_ROSTER_UPDATE") then
     --print("DEBUG:PVPHelperServer_OnEvent: GROUP_ROSTER_UPDATE");
-    self:UpdateParty();
+    objPvPServer:UpdateParty();
 
 	elseif event == "PLAYER_ENTERING_WORLD" then
 	 objPvPServer:Initialize();
@@ -420,14 +426,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
 	--print("TimeSinceLastUpdate:"..frame.TimeSinceLastUpdate.." > Update Interval "..GVAR.UpdateInterval);
 
 	if (frame.TimeSinceLastUpdate >= GVAR.UpdateInterval) then
-		--PVPHelperServerText:SetText(TimeString.." "..string.format("%.2f\n", seconds));
-	
-	--frame.PVPHelperServer_MessageFrame.AddMessage("TESTING");
-	--frame.MessageFrame:AddMessage("TEST",1,1,1);
-	
-	
-	--frame.PVPHelperServer_MessageFrame.AddMessage("TESTING");
---	frame.MessageFrame:Clear();
+
 	local objPvPServer = frame.PvPHelperServer;
 	
   --print("-- Must NOT clear out the Notification List each time!");
@@ -486,7 +485,7 @@ function PVPHelperServer_OnUpdate(frame, elapsed)
               --local maxSeconds = totalSeconds + math.max(nextCast, maxActiveCC);
               local maxSeconds = math.max(nextCast, totalSeconds);
 
-              --print("Found spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
+              --print("DEBUG:OnUpdate:Found spell "..objCC.Spell.CCName.."("..objCC.Spell.SpellId..")["..objCC.Spell.DRType.."] for "..objCC.Friend.Name.." cast in "..maxSeconds.." sec")
 
               local note = Notification.new( 
                 {To = objCC.Friend,

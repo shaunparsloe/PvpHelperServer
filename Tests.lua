@@ -23,7 +23,13 @@ dofile(filepath.."OrderedCCList.lua")
 dofile(filepath.."UI.lua")	
 dofile(filepath.."SlashCommands.lua")
 
+-- Initialise the debugging variables
+DEBUG = {};
+DEBUG.UnitGUID = {};
+DEBUG.GetNumGroupMembers = 1
+
 dofile(filepath.."PvPHelperServer.lua")
+
 
 --CCDR
 function TEST_CCDR()
@@ -384,9 +390,9 @@ function TEST_CreateTestFriendList()
   objWarriorCCTypesList:Add(CCType.new({SpellId=5246, Class=L["WARRIOR"], CCType="CC", CCName=L["Intimidating Shout"], DRType="F", Duration=8, IsCore=false, CastTime=0, Cooldown=90, Targeted=true, Ranged=false, RequiresStealth=false, IsChannelled=false, Weighting=-3149}))
   
   
-  local objFriend1 = Friend.new({GUID="PRIEST123", Name="FriendlyPriest", CCTypes=objPriestCCTypesList})
-  local objFriend2 = Friend.new({GUID="ROGUE123", Name="FriendlyRogue", CCTypes=objRogueCCTypesList})
-  local objFriend3 = Friend.new({GUID="WARR123", Name="FriendlyWarrior", CCTypes=objWarriorCCTypesList})
+  local objFriend1 = Friend.new({GUID="PRIEST123", Name="FriendlyPriest-Hellfire", CCTypes=objPriestCCTypesList})
+  local objFriend2 = Friend.new({GUID="ROGUE123", Name="FriendlyRogue-Hellfire", CCTypes=objRogueCCTypesList})
+  local objFriend3 = Friend.new({GUID="WARR123", Name="FriendlyWarrior-Hellfire", CCTypes=objWarriorCCTypesList})
 
 
   -- Test that we can create a friends list
@@ -404,7 +410,7 @@ function TEST_FRIENDLIST()
   local objFriendList = TEST_CreateTestFriendList()
   -- Assert that the valuss are loaded correctly
   TESTAssert("PRIEST123", objFriendList[1].GUID, "1.objFriendList[1].GUID")
-  TESTAssert("FriendlyPriest", objFriendList[1].Name, "1.objFriendList[1].Name")
+  TESTAssert("FriendlyPriest-Hellfire", objFriendList[1].Name, "1.objFriendList[1].Name")
   TESTAssert(605, objFriendList[1].CCTypes[1].SpellId, "1.objFriendList[1].CCTypes[1].SpellId")
   TESTAssert("ROGUE123", objFriendList[2].GUID, "1.objFriendList[2].GUID")
   TESTAssert("WARR123", objFriendList[3].GUID, "1.objFriendList[3].GUID")
@@ -427,14 +433,14 @@ function TEST_FRIENDLIST()
   --end
   
   -- Test that we can lookup GUIDs
-  local objFoundFriend = objFriendList:LookupName("FriendlyPriest");
+  local objFoundFriend = objFriendList:LookupName("FriendlyPriest-Hellfire");
   -- Assert that we have the correct person
   TESTAssert("PRIEST123", objFoundFriend.GUID, "2.objFoundFriend - search by Name")
   
   -- Test that we can lookup GUIDs
   objFoundFriend = objFriendList:LookupGUID("ROGUE123");
   -- Assert that we have the correct person
-  TESTAssert("FriendlyRogue", objFoundFriend.Name, "2.objFoundFriend Search by GUID")
+  TESTAssert("FriendlyRogue-Hellfire", objFoundFriend.Name, "2.objFoundFriend Search by GUID")
   
   -- Test that we can delete a friend from the friend list
   objFriendList:Delete(objFoundFriend)
@@ -493,7 +499,7 @@ function TEST_AURA_APPLIED()
 
   local objFoundFriend = objFriendList:LookupGUID(sourceGUID);
   -- Assert that we have the correct friend
-  TESTAssert("FriendlyWarrior", objFoundFriend.Name, "2.objFoundFriend.Name")
+  TESTAssert("FriendlyWarrior-Hellfire", objFoundFriend.Name, "2.objFoundFriend.Name")
   -- Lookup those items
   local objSpell = objFoundFriend.CCTypes:LookupSpellId(sourceSpellId);
   local objFoundFoe = objFoeList:LookupGUID(destGUID);
@@ -838,7 +844,7 @@ function TEST_EVENT_SPELL_AURA_REMOVED()
   objPvPHelperServer.FriendList = objFriendList;
   
 -- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_APPLIED", hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605, "Dominate Mind")   -- 605 = Dominate Mind
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_APPLIED", hideCaster, "PRIEST123", "FriendlyPriest-Hellfire", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605, "Dominate Mind")   -- 605 = Dominate Mind
   
 --ASSERT  
   local objFoe;
@@ -850,7 +856,7 @@ function TEST_EVENT_SPELL_AURA_REMOVED()
   TESTAssert(18+6, math.round(objFoe.DRList[1]:DRExpires()), "New application so Expires in 18sec + Dominate mind duration of 6sec");
 
 -- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_REMOVED", hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605, "Dominate Mind")   -- 605 = Dominate Mind
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_REMOVED", hideCaster, "PRIEST123", "FriendlyPriest-Hellfire", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605, "Dominate Mind")   -- 605 = Dominate Mind
   
 --ASSERT  
   TESTAssert(1, table.maxn(objPvPHelperServer.FoeList), "Should have found 1 foe")  
@@ -880,7 +886,7 @@ function TEST_EVENT_SPELL_AURA_APPLIED()
 
 -- ACT
 -- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_APPLIED", hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605)   -- 605 = Dominate Mind
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_APPLIED", hideCaster, "PRIEST123", "FriendlyPriest-Hellfire", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 605)   -- 605 = Dominate Mind
   
 --ASSERT  
   TESTAssert(1, table.maxn(objPvPHelperServer.FoeList), "Should have found 1 foe")  
@@ -909,17 +915,17 @@ function TEST_MESSAGERECEIVED_PLAYERSPELLS()
   TESTAssert("1776,2094", tostring(objPlayer.CCTypes:ListSpellIds()), "Player set up with standard spells initially")  
 
   -- Act
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "MySpells.1776,2094,113506", "WHISPER", "FriendlyRogue")   -- 0020 = Myspells are
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "MySpells.1776,2094,113506", "WHISPER", "FriendlyRogue-Hellfire")   -- 0020 = Myspells are
  
   -- Assert that when this message is received, it must change the spells for that player
   --Assert
   TESTAssert("MySpells", objPvPHelperServer.Message.Header, "MessageReceived - Header")
   TESTAssert("1776,2094,113506", objPvPHelperServer.Message.Body, "MessageReceived - Body")
-  TESTAssert("FriendlyRogue", objPvPHelperServer.Message.From, "MessageReceived - From")
+  TESTAssert("FriendlyRogue-Hellfire", objPvPHelperServer.Message.From, "MessageReceived - From")
 
   objPlayer = objPvPHelperServer.FriendList:LookupGUID("ROGUE123")
   TESTAssert("ROGUE123", tostring(objPlayer.GUID), "Found Player GUID")
-  TESTAssert("FriendlyRogue", tostring(objPlayer.Name), "Player Name")  
+  TESTAssert("FriendlyRogue-Hellfire", tostring(objPlayer.Name), "Player Name")  
   TESTAssert("1776,2094,113506", tostring(objPlayer.CCTypes:ListSpellIds()), "Player now should have correct spells in list.")  
 
   TESTAssert("113506,605,107570,8122,46968,100,15487,64044,1776,2094,5246", tostring(objPvPHelperServer.FriendList.FriendCCTypesList:ListSpellIds()), "PvPServer set up with Updated spells after spell update")  
@@ -948,7 +954,7 @@ function TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
   TESTAssert(0, objOrderedCCSpells[1].Spell:CooldownExpires(), "Not on cooldown") 
 
   -- Act
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.5246", "WHISPER", "FriendlyWarrior")   -- SpellCoolDown = Cooldown
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.5246", "WHISPER", "FriendlyWarrior-Hellfire")   -- SpellCoolDown = Cooldown
 
   -- Now get the new list of ordered spells.
   objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells("FOEGUID123");
@@ -1000,7 +1006,7 @@ function TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
 
   -- Act
   -- We are now told that Intimidating shout is off cooldown
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellOffCooldown.5246", "WHISPER", "FriendlyWarrior")
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellOffCooldown.5246", "WHISPER", "FriendlyWarrior-Hellfire")
 
   -- Now get the new list of ordered spells.
   objOrderedCCSpells = objPvPHelperServer:OrderedCCSpells("FOEGUID123");
@@ -1019,147 +1025,6 @@ function TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
   TESTAssert("2094", tostring(objOrderedCCSpells[2].Spell.SpellId), "Then Blind should be 2nd")  
   TESTAssert("ROGUE123", tostring(objOrderedCCSpells[2].Friend.GUID), "Rogue should CC next")  
 
-
-end
-
-function TEST_EVENT_RAID_ROSTER_UPDATE()
-    
---ARRANGE  
-  objPvPHelperServer = PvPHelperServer.new()
-  
-  -- CHeck that we intially only have ourself in the friendlist
-  TESTAssert(1, table.maxn(objPvPHelperServer.FriendList), "Only player in friendlist initially")  
-
--- ACT
--- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
-
-  -- Set debug value for UnitInRaid to return True for "player"
-  
-  DEBUG.GetRaidRosterInfo = {}
-  DEBUG.GetRaidRosterInfo[1] = {}
-  DEBUG.GetRaidRosterInfo[1].name = "FriendlyPriest"
-  DEBUG.GetRaidRosterInfo[1].rank = 1
-  DEBUG.GetRaidRosterInfo[1].subgroup = 1
-  DEBUG.GetRaidRosterInfo[1].level = 90
-  DEBUG.GetRaidRosterInfo[1].class  = "Priest"
-  DEBUG.GetRaidRosterInfo[1].fileName = "UnknownFileName"
-  DEBUG.GetRaidRosterInfo[1].zone = "UnknownZone"
-  DEBUG.GetRaidRosterInfo[1].online = true
-  DEBUG.GetRaidRosterInfo[1].isDead = false
-  DEBUG.GetRaidRosterInfo[1].role = "DPS"
-  DEBUG.GetRaidRosterInfo[1].isML = false;
-
-  DEBUG.GetRaidRosterInfo[2] = {}
-  DEBUG.GetRaidRosterInfo[2].name = "FriendlyWarrior"
-  DEBUG.GetRaidRosterInfo[2].rank = 1
-  DEBUG.GetRaidRosterInfo[2].subgroup = 1
-  DEBUG.GetRaidRosterInfo[2].level = 90
-  DEBUG.GetRaidRosterInfo[2].class  = "Warrior"
-  DEBUG.GetRaidRosterInfo[2].fileName = "UnknownFileName"
-  DEBUG.GetRaidRosterInfo[2].zone = "UnknownZone"
-  DEBUG.GetRaidRosterInfo[2].online = true
-  DEBUG.GetRaidRosterInfo[2].isDead = false
-  DEBUG.GetRaidRosterInfo[2].role = "DPS"
-  DEBUG.GetRaidRosterInfo[2].isML = false;
-
-  -- Set the number of raid members that should be reported
-  -- and that the player is in a raid
-  DEBUG.GetNumGroupMembers = 2
-  DEBUG.UnitInRaid = {};
-  DEBUG.UnitInRaid["player"]= {};
-  DEBUG.UnitInRaid["player"].retval = true;
-  
-  DEBUG.GetNumGroupMembers = 0 
-  DEBUG.UnitInParty = {};
-  DEBUG.UnitInParty["player"]= {};
-  DEBUG.UnitInParty["player"].retval = false;
-  
-
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "RAID_ROSTER_UPDATE", "PvPHelper", Event, hideCaster, "WARRIOR123", "FriendlyWarrior", sourceFlags, sourceRaidFlags, foeGUID, foeName, destFlags, destRaidFlags, spellId)
-  
---ASSERT  
-  TESTAssert(2, table.maxn(objPvPHelperServer.FriendList), "Should have found 2 Friend")  
-  local objFriend = objPvPHelperServer.FriendList[2];
-  TESTAssert("FriendlyWarrior", objFriend.Name, "Should have found 2 Friends name correctly")  
-
-end
-
-function TEST_EVENT_PARTY_MEMBERS_CHANGED()
-    
---ARRANGE  
-  objPvPHelperServer = PvPHelperServer.new()
-  
-  -- CHeck that we have an empty FoeList initially
-  TESTAssert(1, table.maxn(objPvPHelperServer.FriendList), "One friend initially")  
-
--- ACT
--- Event fires that says that Friendly Priest has applied aura "Dominate Mind" on FoeGUID123
-
-  -- Set debug value for UnitInRaid to return True for "player"
-
-  DEBUG.GetRaidRosterInfo = {}
-  DEBUG.GetRaidRosterInfo[1] = {}
-  DEBUG.GetRaidRosterInfo[1].name = "FriendlyPriest"
-  DEBUG.GetRaidRosterInfo[1].rank = 1
-  DEBUG.GetRaidRosterInfo[1].subgroup = 1
-  DEBUG.GetRaidRosterInfo[1].level = 90
-  DEBUG.GetRaidRosterInfo[1].class  = "Priest"
-  DEBUG.GetRaidRosterInfo[1].fileName = "UnknownFileName"
-  DEBUG.GetRaidRosterInfo[1].zone = "UnknownZone"
-  DEBUG.GetRaidRosterInfo[1].online = true
-  DEBUG.GetRaidRosterInfo[1].isDead = false
-  DEBUG.GetRaidRosterInfo[1].role = "DPS"
-  DEBUG.GetRaidRosterInfo[1].isML = false;
-
-  DEBUG.GetRaidRosterInfo[2] = {}
-  DEBUG.GetRaidRosterInfo[2].name = "FriendlyWarrior"
-  DEBUG.GetRaidRosterInfo[2].rank = 1
-  DEBUG.GetRaidRosterInfo[2].subgroup = 1
-  DEBUG.GetRaidRosterInfo[2].level = 90
-  DEBUG.GetRaidRosterInfo[2].class  = "Warrior"
-  DEBUG.GetRaidRosterInfo[2].fileName = "UnknownFileName"
-  DEBUG.GetRaidRosterInfo[2].zone = "UnknownZone"
-  DEBUG.GetRaidRosterInfo[2].online = true
-  DEBUG.GetRaidRosterInfo[2].isDead = false
-  DEBUG.GetRaidRosterInfo[2].role = "DPS"
-  DEBUG.GetRaidRosterInfo[2].isML = false;
-
-  -- Set the number of raid members that should be reported
-  -- and that the player is in a raid
-  DEBUG.GetNumGroupMembers = 0   
-  DEBUG.UnitInRaid = {};
-  DEBUG.UnitInRaid["player"]= {};
-  DEBUG.UnitInRaid["player"].retval = false;
-  
-  DEBUG.GetNumGroupMembers = 2 
-  DEBUG.UnitInParty = {};
-  DEBUG.UnitInParty["player"]= {};
-  DEBUG.UnitInParty["player"].retval = true;
-  
-  DEBUG.UnitName = {};
-  DEBUG.UnitName["player"] = "FriendlyPriest";
-  DEBUG.UnitName["party1"] = "FriendlyPriest";
-  DEBUG.UnitName["party2"] = "FriendlyWarrior";
-  
-  DEBUG.UnitGUID = {};
-  DEBUG.UnitGUID["player"] = "PRIEST123";
-  DEBUG.UnitGUID["party1"] = "PRIEST123";
-  DEBUG.UnitGUID["party2"] = "WARR123";
-
-
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "PARTY_MEMBERS_CHANGED", "PvPHelper", Event, hideCaster, "WARRIOR123", "FriendlyWarrior", sourceFlags, sourceRaidFlags, foeGUID, foeName, destFlags, destRaidFlags, spellId)
-
-
---ASSERT  
-  TESTAssert(2, table.maxn(objPvPHelperServer.FriendList), "Should have found 2 Friends")  
-  local objFriend = objPvPHelperServer.FriendList[1];
-  TESTAssert("FriendlyPriest", objFriend.Name, "Should have found 1 Friends name correctly")  
-  TESTAssert("PRIEST123", objFriend.GUID, "Should have found 1 Friends GUID correctly")  
-
-  objFriend = objPvPHelperServer.FriendList[2];
-  TESTAssert("FriendlyWarrior", objFriend.Name, "Should have found Friend[2] name correctly")  
-  TESTAssert("WARR123", objFriend.GUID, "Should have found Friend[2] GUID correctly")  
-  
 
 end
 
@@ -1228,15 +1093,15 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
 
   
   TESTAssert(3, table.getn(GVAR.MessageLog), "Should send msg to Warrior, Rogue and Priest");
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr first");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[1].To, "Send to Warr first");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
   TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
-  TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
+  TESTAssert("FriendlyRogue-Hellfire", GVAR.MessageLog[2].To, "Send to Rogue next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
   TESTAssert("1776,8", GVAR.MessageLog[2].Body, "Send to Rogue to Gouge in 8 sec");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[3].To, "Send to Priest next");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[3].To, "Send to Priest next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[3].Header, "Send to Priest to Prepare");
   TESTAssert("64044,12", GVAR.MessageLog[3].Body, "Send to Priest to Horrify");
   
@@ -1248,7 +1113,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
   
   --TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[1].To, "Send to Warr");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
   TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
@@ -1270,7 +1135,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr ");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[1].To, "Send to Warr ");
   TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "5 sec late warning");
   TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
@@ -1282,7 +1147,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
   
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send msg to Warrior");
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 8 sec late");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[1].To, "Send to Warr 8 sec late");
   TESTAssert("LateActNow", GVAR.MessageLog[1].Header, "8 sec late warning");
   TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
@@ -1304,7 +1169,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
   
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send VLate msg to Warrior");
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 11 sec Very late");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[1].To, "Send to Warr 11 sec Very late");
   TESTAssert("VeryLateActNow", GVAR.MessageLog[1].Header, "11 sec VERY late warning");
   TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
@@ -1325,7 +1190,7 @@ function TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
   
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send VLate msg to Warrior");
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr 14 sec Very late");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[1].To, "Send to Warr 14 sec Very late");
   TESTAssert("VeryLateActNow", GVAR.MessageLog[1].Header, "14 sec VERY late warning");
   TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
@@ -1384,6 +1249,8 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   local objFoeList = FoeList.new()
   local objFoe = Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"});
   objFoeList:Add(objFoe)
+  
+  DEBUG.UnitGUID["focus"] = "FOEGUID123";
 
   local objFriendList = TEST_CreateTestFriendList()
   objPvPHelperServer.FriendList = objFriendList;
@@ -1424,15 +1291,15 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
 
   
   TESTAssert(3, table.getn(GVAR.MessageLog), "Should send msg to Warrior, Rogue and Priest");
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[1].To, "Send to Warr first");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[1].To, "Send to Warr first");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Warr to Act Now");
   TESTAssert("5246", GVAR.MessageLog[1].Body, "Send to Warr to Intimidating Shout");
 
-  TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
+  TESTAssert("FriendlyRogue-Hellfire", GVAR.MessageLog[2].To, "Send to Rogue next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
   TESTAssert("1776,8", GVAR.MessageLog[2].Body, "Send to Rogue to Gouge");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[3].To, "Send to Priest next");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[3].To, "Send to Priest next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[3].Header, "Send to Priest to Prepare");
   TESTAssert("64044,12", GVAR.MessageLog[3].Body, "Send to Priest to Horrify");
 
@@ -1449,7 +1316,7 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
 
   -- First thing happens is that we see that the aura is applied
   sourceGUID = "WARR123"
-  sourceName = "FriendlyWarrior"
+  sourceName = "FriendlyWarrior-Hellfire"
   sourceSpellId = 5246;
   destGUID = "FOEGUID123"
 
@@ -1474,14 +1341,14 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   
   --  btnCCTarget1.Foe = objFoe;
 
-  TESTAssert("FriendlyRogue", GVAR.MessageLog[1].To, "Send to Rogue next");
-  TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Rogue to Prepare in 14 sec");
+  TESTAssert("FriendlyRogue-Hellfire", GVAR.MessageLog[1].To, "Send to Rogue next");
+  TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Rogue to Prepare in 7 sec");
 --  TESTAssert("1776", GVAR.MessageLog[1].Payload, "Send to Rogue to Gouge");
-  TESTAssert("1776,14", GVAR.MessageLog[1].Body, "Send to Rogue to Gouge in 14sec");
+  TESTAssert("1776,7", GVAR.MessageLog[1].Body, "Send to Rogue to Gouge in 7 sec");
 
   --print("**Removed Aura")
   -- Now the foe uses his trinket to remove the aura
-  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_REMOVED", hideCaster, "PRIEST123", "FriendlyPriest", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 5246, "Intimidating Shout")   -- 605 = Dominate Mind
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "COMBAT_LOG_EVENT_UNFILTERED", "PvPHelper", "SPELL_AURA_REMOVED", hideCaster, "PRIEST123", "FriendlyPriest-Hellfire", sourceFlags, sourceRaidFlags, "FOEGUID123", "MrBadFoe1", destFlags, destRaidFlags, 5246, "Intimidating Shout")   -- 605 = Dominate Mind
   
   DEBUG.SetClockSeconds = 103;
   GVAR.MessageLog = {}  
@@ -1491,14 +1358,14 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new messages - get rogue to gouge now");
   
-  TESTAssert("FriendlyRogue", GVAR.MessageLog[1].To, "Send to Rogue next");
+  TESTAssert("FriendlyRogue-Hellfire", GVAR.MessageLog[1].To, "Send to Rogue next");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Rogue to Act Now");
   TESTAssert("1776", GVAR.MessageLog[1].Body, "Send to Rogue to Gouge");
 
 
   DEBUG.SetClockSeconds = 103.5;
   --print("DEBUG:Rogue gouges the wrong target!")
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.1776", "WHISPER", "FriendlyRogue")  
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.1776", "WHISPER", "FriendlyRogue-Hellfire")  
   
   
   DEBUG.SetClockSeconds = 104;
@@ -1510,13 +1377,13 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   
   TESTAssert(2, table.getn(GVAR.MessageLog), "Should send 2 new messages");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest next");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest next");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Send to Priest to ActNow");
   TESTAssert("64044", GVAR.MessageLog[1].Body, "Send to Priest to Horrify");
   
-  TESTAssert("FriendlyRogue", GVAR.MessageLog[2].To, "Send to Rogue next");
+  TESTAssert("FriendlyRogue-Hellfire", GVAR.MessageLog[2].To, "Send to Rogue next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Rogue to Prepare");
-  TESTAssert("1776,26", GVAR.MessageLog[2].Body, "Send to Rogue to Gouge");
+  TESTAssert("1776,16", GVAR.MessageLog[2].Body, "Send to Rogue to Gouge");
   
   --print("Priest casts Horrify");
   objPvPHelperServer:Apply_Aura("PRIEST123", 64044, "FOEGUID123");
@@ -1528,13 +1395,13 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   --print("Time now is "..DEBUG.SetClockSeconds);
   PVPHelperServer_OnUpdate(PvPHelperServer_MainFrame, elapsed)
   
-  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new messages - get priest to Silence in 8 sec");
+  TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new messages - Horrify active for 4 more secget priest to Silence in 4 sec");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest next");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Send to Priest to Prepare to Act");
-  TESTAssert("15487,8", GVAR.MessageLog[1].Body, "Send to Priest to Silence");
+  TESTAssert("15487,4", GVAR.MessageLog[1].Body, "Send to Priest to Silence");
 
-  DEBUG.SetClockSeconds = 110;
+  DEBUG.SetClockSeconds = 108;
   
   GVAR.MessageLog = {}  
   elapsed = 7;
@@ -1550,7 +1417,7 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   --print("Priest casts Silence 1 second early");
   objPvPHelperServer:Apply_Aura("PRIEST123", 15487, "FOEGUID123");
   
-  DEBUG.SetClockSeconds = 111;
+  DEBUG.SetClockSeconds = 109;
   
   GVAR.MessageLog = {}  
   elapsed = 7;
@@ -1563,7 +1430,7 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   --print("Warrior Charges");
   objPvPHelperServer:Apply_Aura("WARR123", 100, "FOEGUID123");
 
-  DEBUG.SetClockSeconds = 112;
+  DEBUG.SetClockSeconds = 110;
   
   GVAR.MessageLog = {}  
   elapsed = 1;
@@ -1572,11 +1439,11 @@ function TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
   
   TESTAssert(2, table.getn(GVAR.MessageLog), "Should send new messages - Warr to Shockwave");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest first");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest first");
   TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "DM Now");
   TESTAssert("605,3", GVAR.MessageLog[1].Body, "Send to Priest to Dominate Mind");
 
-  TESTAssert("FriendlyWarrior", GVAR.MessageLog[2].To, "Send to Warr next");
+  TESTAssert("FriendlyWarrior-Hellfire", GVAR.MessageLog[2].To, "Send to Warr next");
   TESTAssert("PrepareToAct", GVAR.MessageLog[2].Header, "Send to Warr to Prepare");
   TESTAssert("46968,21", GVAR.MessageLog[2].Body, "Send to Warr to Shockwave in 21 sec");
 
@@ -1588,9 +1455,10 @@ end
 
 function TEST_PRIEST_ALONE_ROTATION()
   
+  -- Specific Testing Instructions
   DEBUG.SetClockSeconds = 100;
-  
-  -- Use these flags to log messages for debugging
+  DEBUG.UnitGUID["focus"] = "FOEGUID123";
+  DEBUG.GetNumGroupMembers = 1
   DEBUG.LogMessages = true;
   GVAR.MessageLog = {};
   
@@ -1599,7 +1467,7 @@ function TEST_PRIEST_ALONE_ROTATION()
   local objFoe = Foe.new({GUID="FOEGUID123", Name="BadPersonA", Class="MAGE"});
   objFoeList:Add(objFoe)
 
-  local objFriend1 = Friend.new({GUID="PRIEST123", Name="FriendlyPriest", CCTypes=objPriestCCTypesList})
+  local objFriend1 = Friend.new({GUID="PRIEST123", Name="FriendlyPriest-Hellfire", CCTypes=objPriestCCTypesList})
   -- Test that we can create a friends list
   local objFriendList = FriendList.new();
   -- Test that we can add friends to the list
@@ -1612,7 +1480,7 @@ function TEST_PRIEST_ALONE_ROTATION()
   
   btnCCTarget1.Foe = objFoe;
   
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "MySpells.8122,15487,64044", "WHISPER", "FriendlyPriest")   --   
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "MySpells.8122,15487,64044", "WHISPER", "FriendlyPriest-Hellfire")   --   
   
   DEBUG.SetClockSeconds = DEBUG.SetClockSeconds + 1;
   GVAR.MessageLog = {}  
@@ -1627,14 +1495,14 @@ function TEST_PRIEST_ALONE_ROTATION()
   
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send message");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "PH Now");
   TESTAssert("64044", GVAR.MessageLog[1].Body, "Send to Priest to Horrify");
 
   
   -- Priest Does Horrify Now
   objPvPHelperServer:Apply_Aura("PRIEST123", 64044, "FOEGUID123");
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.64044", "WHISPER", "FriendlyPriest")  
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.64044", "WHISPER", "FriendlyPriest-Hellfire")  
   
   elapsed = 1;
   DEBUG.SetClockSeconds = DEBUG.SetClockSeconds + elapsed;
@@ -1648,7 +1516,7 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new message");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest to silence in 4 sec now");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest to silence in 4 sec now");
   TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Silence in 4");
   TESTAssert("15487,4", GVAR.MessageLog[1].Body, "Send to Priest to Silence in 4");
 
@@ -1686,13 +1554,13 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Message to Silence now");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "PH Now");
   TESTAssert("15487", GVAR.MessageLog[1].Body, "Send to Silence");
 
   -- Priest Does Act Now
   objPvPHelperServer:Apply_Aura("PRIEST123", 15487, "FOEGUID123");
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.15487", "WHISPER", "FriendlyPriest")  
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.15487", "WHISPER", "FriendlyPriest-Hellfire")  
    
    
   
@@ -1708,7 +1576,7 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new message");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest to Scream in 4 sec now");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest to Scream in 4 sec now");
   TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Scream in 4");
   TESTAssert("8122,4", GVAR.MessageLog[1].Body, "Send to Priest to Scream in 4");
 
@@ -1740,7 +1608,7 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send message");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Scream Now");
   TESTAssert("8122", GVAR.MessageLog[1].Body, "Send to Priest to Scream");
 
@@ -1749,7 +1617,7 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   -- Priest Does Psychic Scream Now
   objPvPHelperServer:Apply_Aura("PRIEST123", 8122, "FOEGUID123");
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.8122", "WHISPER", "FriendlyPriest")  
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.8122", "WHISPER", "FriendlyPriest-Hellfire")  
    
    
   
@@ -1765,7 +1633,7 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send new message");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest to Scream in 29 sec now");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest to Scream in 29 sec now");
   TESTAssert("PrepareToAct", GVAR.MessageLog[1].Header, "Scream in 29");
   TESTAssert("8122,29", GVAR.MessageLog[1].Body, "Send to Priest to Scream in 29");
 
@@ -1799,14 +1667,14 @@ function TEST_PRIEST_ALONE_ROTATION()
 
   TESTAssert(1, table.getn(GVAR.MessageLog), "Should send message");
 
-  TESTAssert("FriendlyPriest", GVAR.MessageLog[1].To, "Send to Priest");
+  TESTAssert("FriendlyPriest-Hellfire", GVAR.MessageLog[1].To, "Send to Priest");
   TESTAssert("ActNow", GVAR.MessageLog[1].Header, "Scream Now");
   TESTAssert("8122", GVAR.MessageLog[1].Body, "Send to Priest to Scream");
 
 
   -- Priest Does Psychic Scream Now
   objPvPHelperServer:Apply_Aura("PRIEST123", 8122, "FOEGUID123");
-  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.8122", "WHISPER", "FriendlyPriest")  
+  objPvPHelperServer:MessageReceived("PvPHelperServer", "SpellCoolDown.8122", "WHISPER", "FriendlyPriest-Hellfire")  
    
    
 
@@ -1814,11 +1682,57 @@ function TEST_PRIEST_ALONE_ROTATION()
 			
 end
 
+function TEST_EVENT_GROUP_ROSTER_UPDATE()
+    
+--ARRANGE  
+  DEBUG.GetNumGroupMembers = 0;
+  objPvPHelperServer = PvPHelperServer.new()
+  
+  -- CHeck that we have an empty FoeList initially
+  TESTAssert(1, table.maxn(objPvPHelperServer.FriendList), "One friend initially")  
+
+-- ACT
+  
+  DEBUG.GetNumGroupMembers = 2 
+  DEBUG.UnitInParty = {};
+  DEBUG.UnitInParty["player"]= {};
+  DEBUG.UnitInParty["player"].retval = true;
+  
+  DEBUG.UnitName = {};
+  DEBUG.UnitName["player"] = "FriendlyPriest";
+  DEBUG.UnitName["party1"] = "FriendlyPriest";
+  DEBUG.UnitName["party2"] = "FriendlyWarrior";
+  
+  DEBUG.UnitGUID = {};
+  DEBUG.UnitGUID["player"] = "PRIEST123";
+  DEBUG.UnitGUID["party1"] = "PRIEST123";
+  DEBUG.UnitGUID["party2"] = "WARR123";
+
+
+  PVPHelperServer_OnEvent(PvPHelperServer_MainFrame, "GROUP_ROSTER_UPDATE", "PvPHelper", Event, hideCaster, "WARRIOR123", "FriendlyWarrior-Hellfire", sourceFlags, sourceRaidFlags, foeGUID, foeName, destFlags, destRaidFlags, spellId)
+
+
+--ASSERT  
+  TESTAssert(2, table.maxn(objPvPHelperServer.FriendList), "Should have found 2 Friends")  
+  local objFriend = objPvPHelperServer.FriendList[1];
+  TESTAssert("FriendlyPriest-Hellfire", objFriend.Name, "Should have found 1 Friends name correctly")  
+  TESTAssert("PRIEST123", objFriend.GUID, "Should have found 1 Friends GUID correctly")  
+
+  objFriend = objPvPHelperServer.FriendList[2];
+  TESTAssert("FriendlyWarrior-Hellfire", objFriend.Name, "Should have found Friend[2] name correctly")  
+  TESTAssert("WARR123", objFriend.GUID, "Should have found Friend[2] GUID correctly")  
+  
+
+end
+
+
 --END FUNCTIONS
 -- TESTS TO PERFORM
 print("--START TESTS--\n")
+
+TEST_EVENT_GROUP_ROSTER_UPDATE()
+if true then
 TEST_PRIEST_ALONE_ROTATION()
-if false then
 TEST_CCDR()
 TEST_CCDRLIST()
 TEST_CCTYPE()
@@ -1838,22 +1752,13 @@ TEST_AURA_REMOVED()
 TEST_EVENT_CHATMESSAGE()
 TEST_EVENT_PLAYER_REGEN_DISABLED()
 TEST_EVENT_PLAYER_REGEN_ENABLED()
-TEST_EVENT_RAID_ROSTER_UPDATE()
 TEST_EVENT_SPELL_AURA_REMOVED()
 TEST_EVENT_SPELL_AURA_APPLIED()
 TEST_MESSAGERECEIVED_PLAYERSPELLS()
 TEST_MESSAGERECEIVED_PLAYERSPELLONCOOLDOWN()
 TEST_MESSAGERECEIVED_PLAYERSPELLOFFCOOLDOWN()
-TEST_EVENT_RAID_ROSTER_UPDATE()
-TEST_EVENT_PARTY_MEMBERS_CHANGED()
 TEST_CLOCK()
 TEST_ONUPDATE_IF_NO_SPELL_CAST_SHOULD_KEEP_NOTIFYING()
 TEST_ONUPDATE_SHOULD_NOTIFY_NEXT_ON_SPELLCAST()
 end
 print("--END TESTS--\n")
-
-
-
-
-
-
