@@ -4,6 +4,7 @@
 ## Notes: PVP Helper - Main Target selector and CC Caller
 ## SavedVariablesPerCharacter: PVPHelperServer_SavedOptions
 ## LoadOnDemand: 0
+## Version: 0.9
 ## DefaultState: enabled
 ## Dependencies: PvPHelperLibrary
 ## Author: Vordermann
