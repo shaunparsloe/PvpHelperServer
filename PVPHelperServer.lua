@@ -27,15 +27,11 @@ function PvPHelperServer.new (options)
 
 	self.FriendList = FriendList.new();
 	self.FoeList = FoeList.new();
-	self.GlobalCCTypesList = {}
-	self.GlobalCCDRList = {}
+  self.GlobalCCTypesList = CCTypeList:LoadAllCCTypes();
+	self.GlobalCCDRList = CCDRList.LoadAllDRSpells();
 
-	local objDRTypesList = CCDRList.new()
-	GVAR.AllDRTypes = objDRTypesList.LoadAllDRSpells()
-
-	local objList = nil;
-	objList = CCTypeList.new();
-	GVAR.AllCCTypes = objList:LoadAllCCTypes()	
+	GVAR.AllDRTypes = CCDRList:LoadAllDRSpells()
+	GVAR.AllCCTypes = CCTypeList:LoadAllCCTypes()	
 	
 	self:Initialize();
 
@@ -83,8 +79,7 @@ function PvPHelperServer:ResetFriendsAndFoes(options)
   self.FriendList:Add(objFriend);
   
   self.FoeList = options.FoeList
-	self.GlobalCCTypesList = CCTypeList:LoadAllCCTypes();
-	self.GlobalCCDRList = CCDRList.LoadAllDRSpells();
+
 	
 	for i, k in pairs(self.FriendList) do
 		if (k.Name) then
