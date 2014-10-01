@@ -43,57 +43,6 @@ function PvPHelperServer.new (options)
 end
 
 
-function PvPHelperServer:Initialize()
-	--print("DEBUG: PvpHelperServer - Initializing");
-	--self.MessageLog = {}
-	--self.MessageLog.Sent = {}
-	--self.MessageLog.Received= {}
-
-	self.NotificationList= NotificationList.new();
-
-		local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
-		local objFriendList = FriendList.new()
-		objFriendList:Add(objFriend)
-    
-
-		--print("Clearing FoeList");
-		local objFoeList = FoeList.new()
-		self:ResetFriendsAndFoes({FriendList = objFriendList, FoeList = objFoeList})
-
-
-
-	self.UI = {};
-	
-end
-
-
-function PvPHelperServer:ResetFriendsAndFoes(options)
-  -- the new instance
-	--print("Resetting the PvPHelperServer:ResetFriendsAndFoes instance");
-  
-  
-	self.FriendList = options.FriendList
-	self:UpdateParty();
-  local objFriend = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
-
-  self.FriendList:Add(objFriend);
-  
-  self.FoeList = options.FoeList
-
-	
-	for i, k in pairs(self.FriendList) do
-		if (k.Name) then
-				--print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
-				self:SendMessage("WhatSpellsDoYouHave",nil, k.Name);
-			--self:SendMessage("PrepareToAct", "64044,25", k.Name);					
-				--self:SendMessage("DummyTestMessage", nil, k.Name)
-			end
-	end
-	
-	return self;
-end
-
-
 function PvPHelperServer:Apply_Aura(sourceGUID, sourceSpellId, destGUID)
 	local objFoundFriend = self.FriendList:LookupGUID(sourceGUID);
 	local objFriendSpell
@@ -260,18 +209,40 @@ function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
 		print("PvPHelperServer:SetFriendSpells - "..strFrom.." not found")
 	end
 end
+
+function PvPHelperServer:Initialize()
+	--print("DEBUG: PvpHelperServer - Initializing");
+	--self.MessageLog = {}
+	--self.MessageLog.Sent = {}
+	--self.MessageLog.Received= {}
+
+	self.NotificationList= NotificationList.new();
+
+  --print("Clearing FoeList");
+  self.FoeList = FoeList.new()
+  
+  self:UpdateParty();
+
+	self.UI = {};
+	
+end
+
 function PvPHelperServer:UpdateParty()
   local objFriendList = FriendList.new()
   
 --print("DEBUG:PvPHelperServer:UpdateParty():Checking party of "..GetNumGroupMembers());
+
+  local objPlayer = Friend.new({GUID=UnitGUID("player"), Name=UnitName("player").."-"..GetRealmName(), CCTypes=objCCTypeList})
+  objFriendList:Add(objPlayer);
+  
   for i=1,GetNumGroupMembers() do
     local unittowatch = "party"..i;
-    local isdead = UnitIsDeadOrGhost(unittowatch);
     local name, realm = UnitName(unittowatch);
-    local online = UnitIsConnected(unittowatch);
-    local _,class = UnitClass(unittowatch);
     local guid = UnitGUID(unittowatch);
-    
+    --local isdead = UnitIsDeadOrGhost(unittowatch);
+    --local online = UnitIsConnected(unittowatch);
+    --local _,class = UnitClass(unittowatch);
+
     if name then -- Check that this is a valid user
       if not realm then
         realm = GetRealmName()
@@ -289,7 +260,15 @@ function PvPHelperServer:UpdateParty()
   end
 
   self.FriendList = nil;
-  self.FriendList = objFriendList
+  self.FriendList = objFriendList;
+  
+  for i, k in pairs(self.FriendList) do
+    if (k.Name) then
+        --print("DEBUG:PvPHelperServer:ResetFriendsAndFoes - Asking .." .. k.Name .. " for spells");
+        self:SendMessage("WhatSpellsDoYouHave",nil, k.Name);
+
+      end
+  end
 end
 
 
