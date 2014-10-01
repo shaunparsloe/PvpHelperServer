@@ -205,6 +205,7 @@ function Notification:Send()
       if self.ToSpellId == 0 then
         --print("DEBUG:ActNow:Notification:Send() - Reset Spell Id");
       else
+        print("DEBUG:ActNow:send message to "..self.To.Name);
         self:SendMessage(self.ToMessage, self.ToSpellId..appendSeconds, self.To.Name);
       end
     

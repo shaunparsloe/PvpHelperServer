@@ -204,7 +204,7 @@ function PvPHelperServer:SetFriendSpells(strSpellsList, strFrom)
 	-- should get the guid as well as spells list.
 	local objFriend = self.FriendList:LookupName(strFrom)
 	if (objFriend) then
-    print("PvPHelperServer:SetFriendSpells - "..strFrom.." says that he has the following spells: "..tostring(strSpellsList));
+    --print("DEBUG:PvPHelperServer:SetFriendSpells - "..strFrom.." says that he has the following spells: "..tostring(strSpellsList));
 		objFriend:UpdateSpells(strSpellsList, GVAR.AllCCTypes);
 	else
 		print("PvPHelperServer:SetFriendSpells - "..strFrom.." not found")
